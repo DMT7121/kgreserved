@@ -102,50 +102,62 @@ function _createBillRender() {
       window.scrollTo(0, 0)
 
       const originalElement = document.getElementById('bill-render')
-      let elementToRender: HTMLElement = originalElement!
+      if (!originalElement) throw new Error('Không tìm thấy phiếu đặt. Vui lòng thử lại.')
+
+      let elementToRender: HTMLElement = originalElement
       let container: HTMLDivElement | null = null
 
-      const isHidden = originalElement!.offsetParent === null
+      const isHidden = originalElement.offsetParent === null || originalElement.offsetWidth === 0
 
       if (isHidden) {
+        // Clone bill to a visible off-screen container for proper rendering
         container = document.createElement('div')
-        container.style.cssText = 'position:fixed;top:0;left:0;width:800px;z-index:-9999;visibility:visible;'
-        const clone = originalElement!.cloneNode(true) as HTMLElement
-        clone.style.cssText = 'transform:none;margin:0;'
+        container.style.cssText = 'position:fixed;top:0;left:-9999px;width:800px;z-index:-9999;visibility:visible;opacity:1;pointer-events:none;'
+        const clone = originalElement.cloneNode(true) as HTMLElement
+        clone.style.cssText = 'transform:none !important;margin:0;width:800px;min-height:100px;'
+        clone.removeAttribute('id')
         container.appendChild(clone)
         document.body.appendChild(container)
         elementToRender = clone
-        await new Promise(r => setTimeout(r, isIOS ? 200 : 100))
+        // Wait for fonts, images, and layout to settle
+        await new Promise(r => setTimeout(r, isIOS ? 500 : 300))
       } else {
-        await new Promise(r => setTimeout(r, isIOS ? 100 : 50))
+        await new Promise(r => setTimeout(r, isIOS ? 200 : 100))
       }
 
       const isMobile = window.innerWidth < 768 || isIOS
-      let renderScale = isIOS ? 1.5 : (isMobile ? 2 : 3)
-      let canvas: HTMLCanvasElement
+      const scales = isIOS ? [1.5, 1] : (isMobile ? [2, 1.5, 1] : [3, 2, 1.5])
+      let canvas: HTMLCanvasElement | null = null
 
+      // Wait for rendering pipeline
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
 
-      try {
-        canvas = await html2canvas(elementToRender, {
-          scale: renderScale, useCORS: true, logging: false, allowTaint: false,
-          backgroundColor: '#ffffff', width: 800, windowWidth: 800,
-          ignoreElements: (el: Element) => el.classList.contains('no-print')
-        })
-      } catch {
-        console.warn(`Render failed at scale ${renderScale}. Retrying with Safe Scale (1.5)...`)
-        canvas = await html2canvas(elementToRender, {
-          scale: 1.5, useCORS: true, logging: false, allowTaint: false,
-          backgroundColor: '#ffffff', width: 800, windowWidth: 800,
-          ignoreElements: (el: Element) => el.classList.contains('no-print')
-        })
+      // Try progressively lower scales until one succeeds
+      for (const scale of scales) {
+        try {
+          canvas = await html2canvas(elementToRender, {
+            scale, useCORS: true, logging: false, allowTaint: true,
+            backgroundColor: '#ffffff', width: 800, windowWidth: 800,
+            ignoreElements: (el: Element) => el.classList.contains('no-print')
+          })
+          const testData = canvas.toDataURL('image/jpeg', 0.85)
+          if (testData.length > 500) break // Success
+          console.warn(`Scale ${scale} produced small image (${testData.length} chars), retrying...`)
+          canvas = null
+        } catch (e) {
+          console.warn(`Render failed at scale ${scale}:`, e)
+          canvas = null
+        }
       }
 
       if (container) document.body.removeChild(container)
       window.scrollTo(currentScrollX, currentScrollY)
+
+      if (!canvas) throw new Error('Render ảnh thất bại. Vui lòng chuyển sang tab Bill rồi thử lại.')
+
       const highResBase64 = canvas.toDataURL('image/jpeg', 0.85)
 
-      if (highResBase64.length < 1000) throw new Error('Render ảnh thất bại (File quá nhỏ). Vui lòng thử lại.')
+      if (highResBase64.length < 500) throw new Error('Render ảnh thất bại (File quá nhỏ). Vui lòng thử lại.')
 
       const dynamicFileName = constructFileName()
 
