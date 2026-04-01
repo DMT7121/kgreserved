@@ -4,7 +4,7 @@
  */
 
 const API_GATEWAY = import.meta.env.VITE_GAS_URL ||
-  'https://script.google.com/macros/s/AKfycbw2jbn542trnlbd3mYLzbX-co-Cqvl9cPmG9DNO78oD9QBQrhphb1HUeohEjvv6vej-8w/exec'
+  'https://script.google.com/macros/s/AKfycbxzjio4sat5fWoUncPgp8SfjoGqfGxW5vFoDgkHvBI3OKVWIaszsAaUt0LE2fCHtkCFsA/exec'
 
 /** Generic POST to GAS */
 async function postGAS(payload: Record<string, any>): Promise<any> {
