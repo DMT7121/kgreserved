@@ -1,0 +1,49 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useUIStore } from '@/stores/useUIStore'
+import { useFormStore } from '@/stores/useFormStore'
+import { useConfigStore } from '@/stores/useConfigStore'
+import { useAI } from '@/composables/useAI'
+import { useForm } from '@/composables/useForm'
+
+const ui = useUIStore()
+const formStore = useFormStore()
+const configStore = useConfigStore()
+const { processAI } = useAI()
+const { handleInputFocus, handleInputBlur, toggleVoiceMode, handleAiImage } = useForm()
+const aiFileIn = ref<HTMLInputElement>()
+</script>
+
+<template>
+  <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-5 rounded-3xl shadow-2xl relative overflow-hidden group">
+    <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none transform translate-x-4 -translate-y-4"><i class="fa-solid fa-bolt-lightning text-8xl text-white"></i></div>
+    <div class="flex justify-between items-center mb-4 relative z-10">
+      <h3 class="font-black text-white text-xs uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-wand-sparkles text-yellow-300"></i> AI Core v4.0</h3>
+      <span class="text-[9px] px-2 py-1 bg-white/20 text-white rounded-full font-black uppercase backdrop-blur-md border border-white/20" :class="{'animate-pulse': ui.listening}">{{ ui.listening ? 'LISTENING...' : 'SMART ROUTING ON' }}</span>
+    </div>
+
+    <div class="space-y-3 relative z-10 text-white">
+      <div class="relative">
+        <textarea v-model="formStore.rawInput" @focus="handleInputFocus" @blur="handleInputBlur" rows="4" class="w-full p-4 border-none rounded-2xl text-base md:text-sm bg-white/95 text-slate-800 font-medium focus:ring-4 focus:ring-yellow-400 outline-none shadow-xl placeholder-slate-400 transition-all" placeholder="Dán nội dung đặt bàn, nói 'Hey King', hoặc ghi chú tại đây..."></textarea>
+        <div class="absolute bottom-3 right-3 flex gap-2">
+          <button v-if="ui.isVoiceSupported" @click="toggleVoiceMode" :class="['w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg active-effect', ui.listening ? 'recording-active' : 'bg-white text-blue-600 hover-effect']" title="Voice Assistant"><i class="fa-solid fa-microphone"></i></button>
+          <button @click="aiFileIn?.click()" class="w-10 h-10 rounded-full bg-white text-indigo-600 flex items-center justify-center transition-all shadow-lg active-effect hover-effect" title="Upload Image"><i class="fa-solid fa-image"></i></button>
+          <input type="file" ref="aiFileIn" @change="handleAiImage" class="hidden" accept="image/*">
+        </div>
+      </div>
+
+      <div v-if="formStore.aiImage" class="flex items-center p-2 bg-white/10 backdrop-blur rounded-2xl gap-3 border border-white/20">
+        <img :src="formStore.aiImage" class="h-14 w-14 object-cover rounded-xl shadow-md border-2 border-white">
+        <div class="flex-grow">
+          <div class="text-[10px] font-black text-white uppercase tracking-wider">Đã nhận diện hình ảnh</div>
+          <div class="text-[9px] text-blue-100 italic">Vision OCR Ready</div>
+        </div>
+        <button @click="formStore.aiImage = null" class="text-white/60 hover:text-red-300 mr-2 transition-colors min-h-[44px] min-w-[44px]"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    </div>
+
+    <button @click="processAI" class="w-full mt-4 bg-yellow-400 text-slate-900 py-4 rounded-2xl font-black text-sm hover:bg-yellow-300 shadow-xl flex justify-center items-center gap-3 active:scale-95 transition-all min-h-[50px] active-effect" :style="{ backgroundColor: configStore.branding.color }">
+      <i class="fa-solid fa-rocket animate-bounce"></i> PHÂN TÍCH ĐA LUỒNG (QUICK EXTRACT)
+    </button>
+  </div>
+</template>
