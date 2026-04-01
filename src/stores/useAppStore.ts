@@ -4,6 +4,12 @@ import { stripAccents, formatVND, cleanPhoneNumber } from '@/utils'
 import { CACHE_KEYS, DEFAULTS } from '@/utils/constants'
 import * as api from '@/services/api'
 import { useUIStore } from './useUIStore'
+import {
+  cacheHistory, getCachedHistory,
+  cacheMenu, getCachedMenu,
+  cacheMenuSheets, getCachedMenuSheets,
+  addToOfflineQueue, getOfflineQueue, removeFromQueue
+} from '@/services/cache'
 
 export interface HistoryOrder {
   id: string
@@ -120,22 +126,42 @@ export const useAppStore = defineStore('app', () => {
   async function loadHistory(silent: boolean) {
     if (!silent) uiStore.tab = 'history'
     uiStore.connectionStatus = 'syncing'
+
+    // Cache-first: Show cached data instantly
+    const cached = await getCachedHistory()
+    if (cached && cached.length > 0 && historyList.value.length === 0) {
+      historyList.value = cached
+    }
+
     try {
       const data = await api.getHistory()
       if (data.ok) {
         historyList.value = data.data || []
         uiStore.connectionStatus = 'online'
+        // Update cache in background
+        cacheHistory(data.data || [])
       } else {
-        uiStore.connectionStatus = 'error'
+        uiStore.connectionStatus = cached ? 'online' : 'error'
       }
     } catch (e) {
       console.error(e)
-      uiStore.connectionStatus = 'error'
+      uiStore.connectionStatus = cached ? 'online' : 'error'
+      if (cached) uiStore.showToast('Đang dùng dữ liệu offline', 'info')
     }
   }
 
   async function fetchMenu(sheetName?: string) {
     const targetSheet = sheetName || activeSheet.value
+
+    // Cache-first
+    const cached = await getCachedMenu(targetSheet)
+    if (cached && cached.length > 0 && menuList.value.length === 0) {
+      menuList.value = cached
+      const ds: Record<string, string> = {}
+      cached.forEach((i: any) => { if (i.desc) ds[i.name] = i.desc })
+      menuDetails.value = ds
+    }
+
     try {
       const data = await api.getMenu(targetSheet)
       if (data.ok) {
@@ -146,19 +172,30 @@ export const useAppStore = defineStore('app', () => {
         }
         menuDetails.value = ds
         activeSheet.value = targetSheet
+        cacheMenu(targetSheet, data.data || [])
       }
     } catch (e) {
       console.error(e)
+      if (!cached) uiStore.showToast('Không tải được menu', 'warning')
     }
   }
 
   async function fetchSheets() {
+    const cached = await getCachedMenuSheets()
+    if (cached && cached.length > 0) menuSheets.value = cached
+
     try {
       const data = await api.getMenuSheets()
-      if (data.ok) menuSheets.value = data.sheets || []
+      if (data.ok) {
+        menuSheets.value = data.sheets || []
+        cacheMenuSheets(data.sheets || [])
+      }
     } catch (e) {
       console.error('Fetch Sheets Error', e)
     }
+
+    // Process offline queue if any
+    processOfflineQueue()
   }
 
   async function switchMenu(sheetName: string) {
@@ -301,6 +338,22 @@ export const useAppStore = defineStore('app', () => {
       console.warn('Update Config Failed', e)
       uiStore.connectionStatus = 'error'
     })
+  }
+
+  // --- Offline Queue Processor ---
+  async function processOfflineQueue() {
+    const queue = await getOfflineQueue()
+    if (queue.length === 0) return
+    uiStore.showToast(`Đang đồng bộ ${queue.length} đơn offline...`, 'info')
+    for (const item of queue) {
+      try {
+        await api.fetchWithRetry({ action: item.action, data: item.payload })
+        await removeFromQueue(item.id)
+      } catch (e) {
+        console.warn('[OfflineQueue] Failed to sync item:', item.id, e)
+        break // Stop on first failure, retry next time
+      }
+    }
   }
 
   return {

@@ -9,8 +9,16 @@ import MiniSearch from 'minisearch'
 
 /**
  * Form handling, validation, menu search, deposit, and save pipeline
+ * SINGLETON: MiniSearch is only created once to avoid memory leaks
  */
+let _instance: ReturnType<typeof _createForm> | null = null
+
 export function useForm() {
+  if (!_instance) _instance = _createForm()
+  return _instance
+}
+
+function _createForm() {
   const formStore = useFormStore()
   const appStore = useAppStore()
   const uiStore = useUIStore()

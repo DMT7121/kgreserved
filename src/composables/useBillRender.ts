@@ -9,10 +9,17 @@ import { fetchWithRetry } from '@/services/api'
 declare const html2canvas: any
 
 /**
- * Bill rendering composable
+ * Bill rendering composable (SINGLETON)
  * Handles html2canvas rendering, save/export pipeline, and responsive scaling
  */
+let _billInstance: ReturnType<typeof _createBillRender> | null = null
+
 export function useBillRender() {
+  if (!_billInstance) _billInstance = _createBillRender()
+  return _billInstance
+}
+
+function _createBillRender() {
   const formStore = useFormStore()
   const appStore = useAppStore()
   const uiStore = useUIStore()

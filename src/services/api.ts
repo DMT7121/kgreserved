@@ -6,12 +6,16 @@
 const API_GATEWAY = import.meta.env.VITE_GAS_URL ||
   'https://script.google.com/macros/s/AKfycbxzjio4sat5fWoUncPgp8SfjoGqfGxW5vFoDgkHvBI3OKVWIaszsAaUt0LE2fCHtkCFsA/exec'
 
+/** Active AbortController for cancellable requests */
+let activeAIController: AbortController | null = null
+
 /** Generic POST to GAS */
-async function postGAS(payload: Record<string, any>): Promise<any> {
+async function postGAS(payload: Record<string, any>, signal?: AbortSignal): Promise<any> {
   const res = await fetch(API_GATEWAY, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    signal
   })
   return res.json()
 }
@@ -19,23 +23,40 @@ async function postGAS(payload: Record<string, any>): Promise<any> {
 /** POST with auto-retry (for save operations) */
 export async function fetchWithRetry(
   payload: Record<string, any>,
-  retries = 3
+  retries = 3,
+  signal?: AbortSignal
 ): Promise<any> {
   for (let i = 0; i < retries; i++) {
     try {
       const res = await fetch(API_GATEWAY, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal
       })
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
       return await res.json()
-    } catch (e) {
+    } catch (e: any) {
+      if (e.name === 'AbortError') throw e
       if (i === retries - 1) throw e
       console.warn(`Sync failed. Retrying... (${i + 1}/${retries})`)
       await new Promise(r => setTimeout(r, 1000 * (i + 1)))
     }
   }
+}
+
+/** Cancel any active AI request and create new controller */
+export function createAIAbortController(): AbortController {
+  if (activeAIController) {
+    activeAIController.abort()
+  }
+  activeAIController = new AbortController()
+  return activeAIController
+}
+
+/** Clear active controller after completion */
+export function clearAIAbortController() {
+  activeAIController = null
 }
 
 /** Fetch history from GAS */
