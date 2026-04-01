@@ -278,11 +278,11 @@ function _createBillRender() {
   // --- Responsive Preview Scaling ---
   function updatePreviewScale() {
     const el = document.getElementById('bill-render')
-    if (window.innerWidth < 800 && uiStore.tab === 'preview') {
+    if (window.innerWidth < 800) {
       const s = (window.innerWidth - 30) / 800
-      const h = el ? el.offsetHeight : 0
+      const h = el ? el.scrollHeight || el.offsetHeight : 0
       mobileScaleStyles.value = { transform: `scale(${s})`, transformOrigin: 'top left', margin: '0' }
-      wrapperScaleStyles.value = { width: `${800 * s}px`, height: h ? `${h * s}px` : 'auto', position: 'relative', transition: 'height 0.2s ease' }
+      wrapperScaleStyles.value = { width: `${800 * s}px`, height: h ? `${h * s + 10}px` : 'auto', position: 'relative', overflow: 'hidden' }
     } else {
       mobileScaleStyles.value = { transform: 'none', transformOrigin: 'top center', margin: '0 auto' }
       wrapperScaleStyles.value = { width: '100%', display: 'flex', justifyContent: 'center' }
