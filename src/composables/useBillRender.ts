@@ -4,6 +4,8 @@ import { useAppStore } from '@/stores/useAppStore'
 import { useUIStore } from '@/stores/useUIStore'
 import { stripAccents, resizeImage, loadLibrary, isIOS } from '@/utils'
 import { fetchWithRetry } from '@/services/api'
+import { smartUploadImage } from '@/services/r2'
+import { cacheBillImage } from '@/services/cache'
 
 
 declare const html2canvas: any
@@ -150,6 +152,30 @@ function _createBillRender() {
       uiStore.loading.subMsg = 'Optimizing Payload...'
       const lowResBase64 = await resizeImage(highResBase64, 800)
 
+      uiStore.loading.subMsg = 'Uploading Images...'
+
+      // Smart upload bill image: R2 first, fallback to base64 for GAS
+      const billUpload = await smartUploadImage(
+        lowResBase64,
+        `${dynamicFileName}.jpg`,
+        formStore.id || undefined
+      )
+
+      // Smart upload transfer image if exists
+      let transferUpload = { url: formStore.deposit.image || '', source: 'base64' as const }
+      if (formStore.deposit.image && formStore.deposit.image.includes('base64')) {
+        transferUpload = await smartUploadImage(
+          formStore.deposit.image,
+          `CK_${formStore.customer.name}_${Date.now()}.jpg`,
+          formStore.id || undefined
+        )
+      }
+
+      // Cache bill image locally for offline preview
+      cacheBillImage(formStore.id || '', lowResBase64)
+
+      uiStore.loading.subMsg = 'Building Payload...'
+
       const metadata = {
         customerName: formStore.customer.name,
         customerPhone: formStore.customer.phone,
@@ -166,16 +192,17 @@ function _createBillRender() {
       const payload: any = {
         customer: formStore.customer,
         items: formStore.items,
-        deposit: formStore.deposit,
+        deposit: { ...formStore.deposit, image: transferUpload.url },
         staff: formStore.staff,
         id: formStore.id || crypto.randomUUID(),
         version: formStore.version || 1,
         total: formStore.calculatedTotals.final,
-        billImage: lowResBase64,
+        billImage: billUpload.source === 'r2' ? billUpload.url : lowResBase64,
         customFileName: dynamicFileName,
         oldBillFileId: formStore.oldBillFileId,
         smartIndex: metadata,
-        renderPdf: formStore.saveType === 'pdf'
+        renderPdf: formStore.saveType === 'pdf',
+        imageSource: billUpload.source
       }
 
       if (formStore.saveType === 'pdf') {
