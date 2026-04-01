@@ -4,6 +4,7 @@ import { useAppStore } from '@/stores/useAppStore'
 import { useUIStore } from '@/stores/useUIStore'
 import { stripAccents, formatVND, cleanPhoneNumber, formatDateStr, isIOS, formatSetNote } from '@/utils'
 import { SETS, SAMPLE_MENU } from '@/utils/constants'
+import { saveFormDraft, getFormDraft, clearFormDraft } from '@/services/cache'
 
 import MiniSearch from 'minisearch'
 
@@ -335,8 +336,92 @@ Cảm ơn Anh/Chị đã lựa chọn King's Grill! ❤️
     uiStore.verifyModal.show = false
   }
 
+  // --- AUTO-SAVE DRAFT ---
+  let _draftTimer: ReturnType<typeof setInterval> | null = null
+  const draftStatus = ref<string>('')
+
+  function startAutoSave() {
+    if (_draftTimer) return
+    _draftTimer = setInterval(async () => {
+      // Only save if form has meaningful data
+      if (!formStore.customer.name && !formStore.items.some((i: any) => i.name)) return
+      try {
+        await saveFormDraft({
+          customer: { ...formStore.customer },
+          items: formStore.items.map((i: any) => ({ ...i })),
+          deposit: { ...formStore.deposit },
+          staff: { ...formStore.staff },
+          savedAt: new Date().toLocaleString('vi-VN')
+        })
+        draftStatus.value = `Đã lưu nháp ${new Date().toLocaleTimeString('vi-VN')}`
+      } catch { /* ignore */ }
+    }, 5000)
+  }
+
+  async function restoreDraft() {
+    const draft = await getFormDraft()
+    if (!draft) return false
+    formStore.customer = { ...formStore.customer, ...draft.customer }
+    formStore.items = draft.items || formStore.items
+    formStore.deposit = { ...formStore.deposit, ...draft.deposit }
+    formStore.staff = { ...formStore.staff, ...draft.staff }
+    draftStatus.value = `Khôi phục từ ${draft.savedAt || 'bản nháp'}`
+    uiStore.showToast(`Đã khôi phục bản nháp (${draft.savedAt || ''})`, 'info')
+    return true
+  }
+
+  async function clearDraft() {
+    await clearFormDraft()
+    draftStatus.value = ''
+  }
+
+  async function checkDraftOnLoad() {
+    const draft = await getFormDraft()
+    if (draft && draft.customer?.name) {
+      // Show a toast asking if user wants to restore
+      uiStore.showToast(`Có bản nháp "${draft.customer.name}" — nhấn khôi phục để tiếp tục`, 'info')
+      return true
+    }
+    return false
+  }
+
+  // Start auto-save on init
+  startAutoSave()
+
+  // --- QUICK DUPLICATE ORDER ---
+  function duplicateOrder(order: any) {
+    resetForm()
+    // Copy customer info (except date/time)
+    formStore.customer.name = order.customerName || order.customer?.name || ''
+    formStore.customer.phone = order.customerPhone || order.customer?.phone || ''
+    formStore.customer.pax = order.customerPax || order.customer?.pax || ''
+    formStore.customer.tables = order.customerTable || order.customer?.tables || ''
+    formStore.customer.type = order.customer?.type || 'Ăn thường'
+    formStore.customer.note = order.customer?.note || ''
+    // Copy items
+    const items = order.items || (order.data ? JSON.parse(order.data).items : null)
+    if (items && Array.isArray(items)) {
+      formStore.items = items.map((i: any) => ({
+        name: i.name || '',
+        qty: i.qty || 1,
+        price: i.price || 0,
+        note: i.note || ''
+      }))
+    }
+    // Reset deposit & date (new booking)
+    formStore.deposit.isPaid = false
+    formStore.deposit.amount = 0
+    formStore.deposit.image = null
+    formStore.customer.date = ''
+    formStore.customer.time = ''
+
+    uiStore.tab = 'create'
+    uiStore.showToast(`Đã sao chép đơn "${formStore.customer.name}" — chỉ cần chọn ngày giờ!`, 'success')
+  }
+
   return {
     itemSuggestions, crmStatus, depositTransferContent, qrImageUrl,
+    draftStatus,
     onSearchInput, selectMenuItem, handleItemBlur,
     handleInputFocus, handleInputBlur,
     addNewItem, formatDate, autoCalcDeposit, toggleDepositState, clearDeposit,
@@ -344,6 +429,7 @@ Cảm ơn Anh/Chị đã lựa chọn King's Grill! ❤️
     editHistoricOrder, resetForm,
     copyBookingConfirmation, toggleVoiceMode,
     handleAiImage, handleTransferUpload, copyToClipboard,
-    fillSampleMenu, prepareUpdate, confirmVerification
+    fillSampleMenu, prepareUpdate, confirmVerification,
+    restoreDraft, clearDraft, checkDraftOnLoad, duplicateOrder
   }
 }
