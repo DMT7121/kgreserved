@@ -106,7 +106,7 @@ setInterval(() => currentTimestamp.value = new Date().toLocaleString('vi-VN'), 1
           <!-- FOOTER -->
           <div class="border-t-2 border-slate-100 pt-6 text-center space-y-2">
             <p class="text-xs text-slate-400 font-bold">Nhân viên: <span class="text-slate-600 font-black">{{ formStore.staff.name }}</span> &bull; {{ formStore.staff.phone }}</p>
-            <p class="text-[10px] text-slate-300 font-mono">King's Grill Manager AI v1.8.6 | {{ currentTimestamp }}</p>
+            <p class="text-[10px] text-slate-300 font-mono">King's Grill Manager AI v2.0 | {{ currentTimestamp }}</p>
           </div>
         </div>
       </div>
