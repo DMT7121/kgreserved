@@ -42,7 +42,14 @@ watch(() => ui.tempTable, (val) => {
 }, { deep: true })
 
 watch(() => ui.tab, (v) => {
-  if (v === 'preview') nextTick(() => window.dispatchEvent(new Event('resize')))
+  if (v === 'preview') {
+    nextTick(() => {
+      updatePreviewScale()
+      // Re-calc after layout settles
+      setTimeout(() => updatePreviewScale(), 100)
+      setTimeout(() => updatePreviewScale(), 300)
+    })
+  }
 })
 
 // --- Mounted ---
