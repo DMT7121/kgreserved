@@ -34,10 +34,12 @@ setInterval(() => currentTimestamp.value = new Date().toLocaleString('vi-VN'), 1
       <div :style="wrapperScaleStyles">
         <div id="bill-render" :style="mobileScaleStyles" class="bill-preview-container p-10 rounded-3xl relative">
 
-          <!-- STAMP -->
-          <div class="stamp-container">
-            <div v-if="formStore.deposit.isPaid" class="stamp-box stamp-red"><div class="stamp-text">ĐÃ CỌC</div><div class="stamp-info">{{ formStore.deposit.time || 'N/A' }}</div></div>
-            <div v-else class="stamp-box stamp-blue"><div class="stamp-text">CHỜ CỌC</div><div class="stamp-info">PENDING</div></div>
+          <!-- STAMP: Diagonal Corner Banner -->
+          <div class="stamp-ribbon-wrapper" :class="formStore.deposit.isPaid ? 'stamp-ribbon-paid' : 'stamp-ribbon-pending'">
+            <div class="stamp-ribbon">
+              <span class="stamp-ribbon-text">{{ formStore.deposit.isPaid ? 'ĐÃ CỌC' : 'CHỜ CỌC' }}</span>
+              <span class="stamp-ribbon-sub">{{ formStore.deposit.isPaid ? (formStore.deposit.time || '✓') : 'PENDING' }}</span>
+            </div>
           </div>
 
           <!-- HEADER -->
