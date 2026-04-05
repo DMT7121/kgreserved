@@ -29,7 +29,11 @@ const CONFIG = {
 };
 
 // --- PHẦN 0: HELPER ---
-function initSheetIfNeeded(ss, sheetName, headers, bgColor) {
+function initSheetIfNeeded_(ss, sheetName, headers, bgColor) {
+  if (!ss) {
+    if (typeof console !== 'undefined') console.error("LỖI: Tránh chạy trực tiếp hàm này vì thiếu Data!");
+    return null;
+  }
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
@@ -73,12 +77,12 @@ function doPost(e) {
     let result = {};
     switch (action) {
       case "saveOrder": result = saveOrder(data.data); break;
-      case "deleteOrder": result = deleteOrder(data.id); break;
+      case "deleteOrder": result = deleteOrder(data.id, data.password); break;
       case "getHistory": result = getHistoryData(); break;
       case "getMenuSheets": result = getMenuSheets(); break;
       case "getMenu": result = getMenuData(data.sheetName); break;
-      case "createMenu": result = createNewMenuSheet(data.name, data.rawText); break;
-      case "saveConfig": result = saveSystemConfig(data); break;
+      case "createMenu": result = createNewMenuSheet(data.name, data.rawText, data.password); break;
+      case "saveConfig": result = saveSystemConfig(data, data.password); break;
       case "getConfig": result = getSystemConfig(); break;
       case "renderPreview": result = renderPreview(data.data); break;
       case "saveApiKey": result = saveApiKey(data.provider, data.model, data.key, data.password); break;
@@ -121,7 +125,10 @@ function getMenuData(sheetName) {
   }
 }
 
-function createNewMenuSheet(name, rawText) {
+function createNewMenuSheet(name, rawText, password) {
+  if (password !== CONFIG.ADMIN_PASS) {
+    return { ok: false, message: "Từ chối truy cập! Yêu cầu mật khẩu Admin để tạo Menu." };
+  }
   const ss = SpreadsheetApp.openById(CONFIG.SS_ID);
   const sheetName = name.toLowerCase().includes("menu") ? name : `Menu - ${name}`;
   let sheet = ss.getSheetByName(sheetName);
@@ -163,6 +170,20 @@ function parseMenuRawData(text) {
 
 // --- PHẦN 3: ORDERS ---
 function saveOrder(p) {
+  // --- BACKEND VALIDATION ---
+  if (!p || !p.customer || !p.customer.name || !p.customer.phone) {
+    throw new Error("Lỗ hổng: Dữ liệu khách hàng không hợp lệ!");
+  }
+  
+  const total = Number(p.total) || 0;
+  const itemsCount = (p.items && Array.isArray(p.items)) ? p.items.length : 0;
+  
+  if (itemsCount > 0 && total < 10000) {
+    throw new Error("Lỗ hổng: Đơn hàng có món nhưng tổng tiền < 10.000 VNĐ!");
+  } else if (total < 0) {
+    throw new Error("Lỗ hổng: Tổng tiền âm không hợp lệ!");
+  }
+  // --------------------------
   if (p.oldBillFileId) { try { Drive.Files.update({trashed: true}, p.oldBillFileId); } catch(e) {} }
   let billUrl = p.billImage || "";
   if (p.htmlContent) {
@@ -184,7 +205,7 @@ function saveOrder(p) {
     meta: { createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
   };
   const ss = SpreadsheetApp.openById(CONFIG.SS_ID);
-  const sheet = initSheetIfNeeded(ss, CONFIG.SHEET_NAME_ORDERS, CONFIG.ORDER_HEADERS, "#dbeafe");
+  const sheet = initSheetIfNeeded_(ss, CONFIG.SHEET_NAME_ORDERS, CONFIG.ORDER_HEADERS, "#dbeafe");
   const row = [
     p.id || Utilities.getUuid(), new Date().toISOString(), p.customer.name,
     "'" + p.customer.phone, JSON.stringify(unifiedData), p.total,
@@ -306,7 +327,10 @@ function getHistoryData() {
   } catch(e) { return { ok: false, message: "Lỗi tải lịch sử: " + e.message }; }
 }
 
-function deleteOrder(id) {
+function deleteOrder(id, password) {
+  if (password !== CONFIG.ADMIN_PASS) {
+    return { ok: false, message: "Từ chối truy cập! Yêu cầu mật khẩu Admin để xóa đơn." };
+  }
   const ss = SpreadsheetApp.openById(CONFIG.SS_ID);
   const sheet = ss.getSheetByName(CONFIG.SHEET_NAME_ORDERS);
   const data = sheet.getDataRange().getValues();
@@ -352,8 +376,12 @@ function removeAccents(str) { return str.normalize("NFD").replace(/[\u0300-\u036
 
 // --- API KEYS ---
 function saveApiKey(provider, model, key, password) {
+  if (password !== CONFIG.ADMIN_PASS) {
+    return { ok: false, message: "Từ chối truy cập! Yêu cầu mật khẩu Admin để lưu Key." };
+  }
+  
   const ss = SpreadsheetApp.openById(CONFIG.SS_ID);
-  const sheet = initSheetIfNeeded(ss, CONFIG.SHEET_NAME_KEYS, CONFIG.KEY_HEADERS, "#fef08a");
+  const sheet = initSheetIfNeeded_(ss, CONFIG.SHEET_NAME_KEYS, CONFIG.KEY_HEADERS, "#fef08a");
   const data = sheet.getDataRange().getValues();
   const exists = data.some(row => row[1] === provider && row[3] === key);
   if (!exists) {
@@ -364,8 +392,12 @@ function saveApiKey(provider, model, key, password) {
 }
 
 function saveApiKeys(keysData, password) {
+  if (password !== CONFIG.ADMIN_PASS) {
+    return { ok: false, message: "Từ chối truy cập! Yêu cầu mật khẩu Admin để lưu Keys." };
+  }
+
   const ss = SpreadsheetApp.openById(CONFIG.SS_ID);
-  const sheet = initSheetIfNeeded(ss, CONFIG.SHEET_NAME_KEYS, CONFIG.KEY_HEADERS, "#fef08a");
+  const sheet = initSheetIfNeeded_(ss, CONFIG.SHEET_NAME_KEYS, CONFIG.KEY_HEADERS, "#fef08a");
   const data = sheet.getDataRange().getValues();
   const existingKeys = new Set();
   for (let i = 1; i < data.length; i++) { existingKeys.add(data[i][1] + '_' + data[i][3]); }
@@ -393,7 +425,7 @@ function saveApiKeys(keysData, password) {
 function getSharedApiKeys(password) {
   if (password !== CONFIG.ADMIN_PASS) return { ok: false, message: "Sai mật khẩu Admin!" };
   const ss = SpreadsheetApp.openById(CONFIG.SS_ID);
-  const sheet = initSheetIfNeeded(ss, CONFIG.SHEET_NAME_KEYS, CONFIG.KEY_HEADERS, "#fef08a");
+  const sheet = initSheetIfNeeded_(ss, CONFIG.SHEET_NAME_KEYS, CONFIG.KEY_HEADERS, "#fef08a");
   const rows = sheet.getDataRange().getValues();
   const keys = [];
   for(let i = 1; i < rows.length; i++) {
@@ -407,9 +439,12 @@ function getSharedApiKeys(password) {
 }
 
 // --- PHẦN 5: SYSTEM CONFIG ---
-function saveSystemConfig(data) {
+function saveSystemConfig(data, password) {
+  if (password !== CONFIG.ADMIN_PASS) {
+    return { ok: false, message: "Từ chối truy cập! Yêu cầu mật khẩu Admin để ghi dữ liệu cấu hình." };
+  }
   const ss = SpreadsheetApp.openById(CONFIG.SS_ID);
-  const sheet = initSheetIfNeeded(ss, CONFIG.SHEET_NAME_CONFIG, CONFIG.CONFIG_HEADERS, "#e9d5ff");
+  const sheet = initSheetIfNeeded_(ss, CONFIG.SHEET_NAME_CONFIG, CONFIG.CONFIG_HEADERS, "#e9d5ff");
   const keysToSave = ['bankList', 'staffList'];
   const rows = sheet.getDataRange().getValues();
   keysToSave.forEach(key => {
@@ -426,7 +461,7 @@ function saveSystemConfig(data) {
 
 function getSystemConfig() {
   const ss = SpreadsheetApp.openById(CONFIG.SS_ID);
-  const sheet = initSheetIfNeeded(ss, CONFIG.SHEET_NAME_CONFIG, CONFIG.CONFIG_HEADERS, "#e9d5ff");
+  const sheet = initSheetIfNeeded_(ss, CONFIG.SHEET_NAME_CONFIG, CONFIG.CONFIG_HEADERS, "#e9d5ff");
   const config = {};
   const rows = sheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) { config[rows[i][0]] = rows[i][1]; }

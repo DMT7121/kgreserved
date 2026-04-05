@@ -70,8 +70,8 @@ export async function saveOrder(data: any): Promise<any> {
 }
 
 /** Delete order from GAS */
-export async function deleteOrder(id: string): Promise<any> {
-  return postGAS({ action: 'deleteOrder', id })
+export async function deleteOrder(id: string, password?: string): Promise<any> {
+  return postGAS({ action: 'deleteOrder', id, password })
 }
 
 /** Fetch menu items for a specific sheet */
@@ -85,8 +85,8 @@ export async function getMenuSheets(): Promise<any> {
 }
 
 /** Create or update menu */
-export async function createMenu(name: string, rawText: string): Promise<any> {
-  return postGAS({ action: 'createMenu', name, rawText })
+export async function createMenu(name: string, rawText: string, password?: string): Promise<any> {
+  return postGAS({ action: 'createMenu', name, rawText, password })
 }
 
 /** Save API key to cloud */
@@ -105,6 +105,6 @@ export async function getConfig(): Promise<any> {
 }
 
 /** Save config to remote */
-export async function saveConfig(bankList: string, staffList: string): Promise<any> {
-  return postGAS({ action: 'saveConfig', bankList, staffList })
+export async function saveConfig(bankList: string, staffList: string, password?: string): Promise<any> {
+  return postGAS({ action: 'saveConfig', bankList, staffList, password })
 }

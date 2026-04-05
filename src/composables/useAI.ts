@@ -3,7 +3,7 @@ import { useFormStore } from '@/stores/useFormStore'
 import { useConfigStore } from '@/stores/useConfigStore'
 import { useAppStore } from '@/stores/useAppStore'
 import { parseJSON, resizeImage, stripAccents, formatVND, formatSetNote } from '@/utils'
-import { AI_MODELS, SETS, ADVANCED_AI_PROMPT } from '@/utils/constants'
+import { AI_MODELS, SETS, ADVANCED_AI_PROMPT, IMAGE_OCR_PROMPT } from '@/utils/constants'
 import type { AIModel } from '@/utils/constants'
 
 /**
@@ -270,11 +270,78 @@ Yêu cầu:
     }
   }
 
+  /**
+   * OCR: Extract raw text from image (Step 1 of 2-step flow)
+   * Returns plain text (not JSON) for user review before parsing
+   */
+  async function ocrExtractText(base64Img: string): Promise<string> {
+    uiStore.loading.is = true
+    uiStore.loading.msg = 'AI OCR ĐANG ĐỌC ẢNH...'
+    uiStore.loading.subMsg = 'Vision Processing...'
+
+    try {
+      const optimizedImg = await resizeImage(base64Img, 1280)
+
+      // Find vision models with available keys, sorted by tier
+      let candidates: AIModel[] = []
+      const defaultVisionId = configStore.defaults.vision
+      const defaultModel = AI_MODELS.find(m => m.id === defaultVisionId)
+      if (defaultModel) candidates.push(defaultModel)
+
+      const rest = AI_MODELS.filter(m => m.type === 'vision' && m.id !== defaultVisionId).sort((a, b) => a.tier - b.tier)
+      candidates = [...candidates, ...rest]
+      candidates = candidates.filter(m =>
+        m.provider === 'pollinations' || (configStore.keys[m.provider] && configStore.keys[m.provider].length > 0)
+      )
+
+      if (candidates.length === 0) {
+        throw new Error('Không có API Key nào được cấu hình cho Vision/OCR')
+      }
+
+      const startTime = performance.now()
+      let lastError: Error | null = null
+
+      for (const model of candidates) {
+        try {
+          uiStore.loading.subMsg = `OCR via ${model.name}...`
+
+          // Call the model but extract raw text (not JSON)
+          const rawResult = await callAIModel(model, IMAGE_OCR_PROMPT, 'Trích xuất toàn bộ văn bản từ ảnh này.', optimizedImg)
+
+          if (rawResult && rawResult.trim().length > 10) {
+            const latency = ((performance.now() - startTime) / 1000).toFixed(1)
+
+            // Clean up the result - remove markdown code blocks if any
+            let cleanText = rawResult.trim()
+            cleanText = cleanText.replace(/^```[\w]*\n?/gm, '').replace(/```$/gm, '').trim()
+
+            uiStore.showToast(
+              `<b>OCR Thành công ⚡</b><br/>Model: <span class="text-indigo-600">${model.name}</span><br/>Tốc độ: ${latency}s`,
+              'success', 3000
+            )
+
+            return cleanText
+          } else {
+            throw new Error('OCR trả về kết quả rỗng')
+          }
+        } catch (e: any) {
+          console.warn(`OCR Model ${model.name} failed:`, e.message)
+          lastError = e
+        }
+      }
+
+      throw new Error('OCR pipeline thất bại: ' + (lastError?.message || 'Unknown'))
+    } finally {
+      uiStore.loading.is = false
+    }
+  }
+
   return {
     callAIModel,
     repairMalformedJSON,
     smartRouter,
     processAI,
-    verifyTransferImage
+    verifyTransferImage,
+    ocrExtractText
   }
 }

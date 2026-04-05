@@ -2,7 +2,7 @@ import { ref, computed, watch } from 'vue'
 import { useFormStore } from '@/stores/useFormStore'
 import { useAppStore } from '@/stores/useAppStore'
 import { useUIStore } from '@/stores/useUIStore'
-import { stripAccents, formatVND, cleanPhoneNumber, formatDateStr, isIOS, formatSetNote } from '@/utils'
+import { stripAccents, formatVND, cleanPhoneNumber, formatDateStr, isIOS, formatSetNote, escapeHtml } from '@/utils'
 import { SETS, SAMPLE_MENU } from '@/utils/constants'
 import { saveFormDraft, getFormDraft, clearFormDraft } from '@/services/cache'
 
@@ -379,7 +379,7 @@ Cảm ơn Anh/Chị đã lựa chọn King's Grill! ❤️
     const draft = await getFormDraft()
     if (draft && draft.customer?.name) {
       // Show a toast asking if user wants to restore
-      uiStore.showToast(`Có bản nháp "${draft.customer.name}" — nhấn khôi phục để tiếp tục`, 'info')
+      uiStore.showToast(`Có bản nháp "${escapeHtml(draft.customer.name)}" — nhấn khôi phục để tiếp tục`, 'info')
       return true
     }
     return false
@@ -416,7 +416,7 @@ Cảm ơn Anh/Chị đã lựa chọn King's Grill! ❤️
     formStore.customer.time = ''
 
     uiStore.tab = 'create'
-    uiStore.showToast(`Đã sao chép đơn "${formStore.customer.name}" — chỉ cần chọn ngày giờ!`, 'success')
+    uiStore.showToast(`Đã sao chép đơn "${escapeHtml(formStore.customer.name)}" — chỉ cần chọn ngày giờ!`, 'success')
   }
 
   return {

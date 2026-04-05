@@ -9,9 +9,32 @@ import { useForm } from '@/composables/useForm'
 const ui = useUIStore()
 const formStore = useFormStore()
 const configStore = useConfigStore()
-const { processAI } = useAI()
-const { handleInputFocus, handleInputBlur, toggleVoiceMode, handleAiImage } = useForm()
+const { processAI, ocrExtractText } = useAI()
+const { handleInputFocus, handleInputBlur, toggleVoiceMode } = useForm()
 const aiFileIn = ref<HTMLInputElement>()
+
+async function onImageSelect(e: Event) {
+  const f = (e.target as HTMLInputElement).files?.[0]
+  if (f) {
+    const r = new FileReader()
+    r.onload = async (ev) => {
+      const base64 = ev.target?.result as string
+      formStore.aiImage = base64 // Show thumbnail temporarily
+      try {
+        const text = await ocrExtractText(base64)
+        if (text) {
+          formStore.rawInput = (formStore.rawInput ? formStore.rawInput + '\n\n' : '') + text
+          formStore.aiImage = null // Clear image so processAI focuses purely on text
+        }
+      } catch (err: any) {
+        ui.showToast('Lỗi OCR: ' + err.message, 'error')
+        // Leave image there if it failed, so user can try another way
+      }
+      if (aiFileIn.value) aiFileIn.value.value = '' // Reset input
+    }
+    r.readAsDataURL(f)
+  }
+}
 </script>
 
 <template>
@@ -28,7 +51,7 @@ const aiFileIn = ref<HTMLInputElement>()
         <div class="absolute bottom-3 right-3 flex gap-2">
           <button v-if="ui.isVoiceSupported" @click="toggleVoiceMode" :class="['w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg active-effect', ui.listening ? 'recording-active' : 'bg-white text-blue-600 hover-effect']" title="Voice Assistant"><i class="fa-solid fa-microphone"></i></button>
           <button @click="aiFileIn?.click()" class="w-10 h-10 rounded-full bg-white text-indigo-600 flex items-center justify-center transition-all shadow-lg active-effect hover-effect" title="Upload Image"><i class="fa-solid fa-image"></i></button>
-          <input type="file" ref="aiFileIn" @change="handleAiImage" class="hidden" accept="image/*">
+          <input type="file" ref="aiFileIn" @change="onImageSelect" class="hidden" accept="image/*">
         </div>
       </div>
 

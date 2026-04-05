@@ -53,32 +53,38 @@ export const useConfigStore = defineStore('config', () => {
     const keyVal = tempKeys[pId]?.trim()
     if (!keyVal) return
 
-    uiStore.loading.is = true
-    uiStore.loading.msg = 'ĐANG LƯU KEY LÊN MÁY CHỦ...'
-    try {
-      if (!keys[pId]) keys[pId] = []
-      if (keys[pId].includes(keyVal)) {
-        tempKeys[pId] = ''
-        uiStore.showToast('Key này đã tồn tại trên hệ thống, đã bỏ qua lưu mới!', 'info')
-        return
-      }
+    if (!keys[pId]) keys[pId] = []
+    if (keys[pId].includes(keyVal)) {
+      tempKeys[pId] = ''
+      uiStore.showToast('Key này đã tồn tại trên thiết bị, đã bỏ qua lưu mới!', 'info')
+      return
+    }
 
+    const adminPass = await uiStore.showPrompt('Đồng bộ Cloud', 'Nhập Pass Admin để đồng bộ Key lên hệ thống (để trống nếu chỉ muốn lưu trên trình duyệt này):')
+
+    uiStore.loading.is = true
+    uiStore.loading.msg = adminPass ? 'ĐANG ĐỒNG BỘ LÊN MÁY CHỦ...' : 'ĐANG LƯU CỤC BỘ...'
+    try {
       keys[pId].push(keyVal)
       tempKeys[pId] = ''
       localStorage.setItem(CACHE_KEYS.KEYS, JSON.stringify(keys))
 
-      const data = await api.saveApiKeyToCloud(pId, keyVal, 'ADMINDMT')
-      if (data.ok) {
-        uiStore.showToast(`Đã lưu & đồng bộ API Key ${PLATFORMS[pId].name} lên Server!`, 'success')
-      } else {
-        if (data.message?.toLowerCase().includes('trùng')) {
-          uiStore.showToast('Key đã có sẵn trên Cloud, bỏ qua lưu trùng.', 'info')
+      if (adminPass) {
+        const data = await api.saveApiKeyToCloud(pId, keyVal, adminPass)
+        if (data.ok) {
+          uiStore.showToast(`Đã lưu & đồng bộ API Key ${PLATFORMS[pId].name} lên Server!`, 'success')
         } else {
-          uiStore.showToast(`Đã lưu cục bộ nhưng lỗi Cloud: ${data.message}`, 'warning')
+          if (data.message?.toLowerCase().includes('trùng')) {
+            uiStore.showToast('Key đã có sẵn trên Cloud, bỏ qua lưu trùng.', 'info')
+          } else {
+            uiStore.showToast(`Lưu cục bộ OK nhưng đồng bộ Cloud bị lỗi: ${data.message}`, 'warning')
+          }
         }
+      } else {
+        uiStore.showToast('Đã lưu cục bộ an toàn (Chưa đồng bộ lên Cloud).', 'success')
       }
     } catch {
-      uiStore.showToast('Đã lưu cục bộ (Chưa đồng bộ Cloud do lỗi mạng)', 'warning')
+      uiStore.showToast('Lưu hoàn tất (Có lỗi mạng trong quá trình đồng bộ)', 'warning')
     } finally {
       uiStore.loading.is = false
     }
@@ -90,7 +96,7 @@ export const useConfigStore = defineStore('config', () => {
   }
 
   async function borrowKeys() {
-    if (!borrowPass.value) return uiStore.showToast('Nhập pass Admin!', 'warning')
+    if (!borrowPass.value) return uiStore.showToast('Nhập pass Admin hoặc Password Truy cập!', 'warning')
     uiStore.loading.is = true
     uiStore.loading.msg = 'ĐANG KẾT NỐI SERVER TẢI KEYS...'
     try {
@@ -108,14 +114,10 @@ export const useConfigStore = defineStore('config', () => {
           }
         })
         localStorage.setItem(CACHE_KEYS.KEYS, JSON.stringify(keys))
-        if (borrowPass.value === 'ADMINDMT') {
-          uiStore.showToast(`[QUYỀN ADMIN] Đã lấy toàn bộ ${data.keys.length} keys từ hệ thống! (Mới: ${addedCount})`, 'success', 5000)
-        } else {
-          uiStore.showToast(`Đã lấy ${data.keys.length} keys!`, 'success')
-        }
+        uiStore.showToast(`Đã tải thành công ${data.keys.length} Keys từ hệ thống! (Mới: ${addedCount})`, 'success', 5000)
         borrowPass.value = ''
       } else {
-        uiStore.showToast(data.message || 'Mật khẩu không đúng hoặc từ chối truy cập!', 'error')
+        uiStore.showToast(data.message || 'Mật khẩu không đúng hoặc quyền bị từ chối!', 'error')
       }
     } catch {
       uiStore.showToast('Lỗi kết nối máy chủ', 'error')

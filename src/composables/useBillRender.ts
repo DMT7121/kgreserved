@@ -2,7 +2,7 @@ import { ref, nextTick } from 'vue'
 import { useFormStore } from '@/stores/useFormStore'
 import { useAppStore } from '@/stores/useAppStore'
 import { useUIStore } from '@/stores/useUIStore'
-import { stripAccents, resizeImage, loadLibrary, isIOS } from '@/utils'
+import { stripAccents, resizeImage, loadLibrary, isIOS, isAndroid, isMobile } from '@/utils'
 import { fetchWithRetry } from '@/services/api'
 import { smartUploadImage } from '@/services/r2'
 import { cacheBillImage } from '@/services/cache'
@@ -104,50 +104,52 @@ function _createBillRender() {
       const originalElement = document.getElementById('bill-render')
       if (!originalElement) throw new Error('Không tìm thấy phiếu đặt. Vui lòng thử lại.')
 
-      let elementToRender: HTMLElement = originalElement
-      let container: HTMLDivElement | null = null
+      // ALWAYS clone bill to avoid any scroll offset, transform clipping, or hidden state issues
+      const container = document.createElement('div')
+      container.style.cssText = 'position:fixed;top:0;left:-9999px;width:800px;z-index:-9999;visibility:visible;opacity:1;pointer-events:none;'
+      const clone = originalElement.cloneNode(true) as HTMLElement
+      clone.style.cssText = 'transform:none !important;margin:0;width:800px;min-height:100px;'
+      clone.removeAttribute('id')
+      container.appendChild(clone)
+      document.body.appendChild(container)
+      const elementToRender = clone
+      
+      // Wait for fonts, images, and layout to settle
+      await new Promise(r => setTimeout(r, isIOS ? 500 : 300))
 
-      const isHidden = originalElement.offsetParent === null || originalElement.offsetWidth === 0
+      // Inline all images to avoid CORS/taint issues which crash the render on PC
+      try {
+        const imgs = Array.from(elementToRender.querySelectorAll('img'))
+        await Promise.all(imgs.map(async (img) => {
+          if (!img.src || img.src.startsWith('data:')) return
+          try {
+            const r = await fetch(img.src)
+            const blob = await r.blob()
+            const base64 = await new Promise<string>((res) => {
+              const reader = new FileReader()
+              reader.onloadend = () => res(reader.result as string)
+              reader.readAsDataURL(blob)
+            })
+            img.src = base64
+          } catch (e) { img.style.display = 'none' } // Hide if CORS blocked
+        }))
+      } catch (e) {}
 
-      if (isHidden) {
-        // Clone bill to a visible off-screen container for proper rendering
-        container = document.createElement('div')
-        container.style.cssText = 'position:fixed;top:0;left:-9999px;width:800px;z-index:-9999;visibility:visible;opacity:1;pointer-events:none;'
-        const clone = originalElement.cloneNode(true) as HTMLElement
-        clone.style.cssText = 'transform:none !important;margin:0;width:800px;min-height:100px;'
-        clone.removeAttribute('id')
-        container.appendChild(clone)
-        document.body.appendChild(container)
-        elementToRender = clone
-        // Wait for fonts, images, and layout to settle
-        await new Promise(r => setTimeout(r, isIOS ? 500 : 300))
-      } else {
-        await new Promise(r => setTimeout(r, isIOS ? 200 : 100))
-      }
-
-      const isMobile = window.innerWidth < 768 || isIOS
-      const scales = isIOS ? [1.5, 1] : (isMobile ? [2, 1.5, 1] : [3, 2, 1.5])
       let canvas: HTMLCanvasElement | null = null
 
       // Wait for rendering pipeline
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
 
-      // Try progressively lower scales until one succeeds
-      for (const scale of scales) {
-        try {
-          canvas = await html2canvas(elementToRender, {
-            scale, useCORS: true, logging: false, allowTaint: true,
-            backgroundColor: '#ffffff', width: 800, windowWidth: 800,
-            ignoreElements: (el: Element) => el.classList.contains('no-print')
-          })
-          const testData = canvas.toDataURL('image/jpeg', 0.85)
-          if (testData.length > 500) break // Success
-          console.warn(`Scale ${scale} produced small image (${testData.length} chars), retrying...`)
-          canvas = null
-        } catch (e) {
-          console.warn(`Render failed at scale ${scale}:`, e)
-          canvas = null
-        }
+      // Render fixed high-quality scale directly (siêu nhanh)
+      try {
+        canvas = await html2canvas(elementToRender, {
+          scale: 2, useCORS: true, logging: false,
+          backgroundColor: '#ffffff', width: 800, windowWidth: 800,
+          ignoreElements: (el: Element) => el.classList.contains('no-print') || (el as HTMLElement).style?.display === 'none'
+        })
+      } catch (e) {
+        console.error('H2C Error', e)
+        canvas = null
       }
 
       if (container) document.body.removeChild(container)
@@ -218,15 +220,24 @@ function _createBillRender() {
       }
 
       if (formStore.saveType === 'pdf') {
-        const styles = document.getElementsByTagName('style')[0]?.innerHTML || ''
-        const body = document.getElementById('bill-render')?.outerHTML || ''
-        payload.htmlContent = `<html><head><style>${styles}</style></head><body>${body}</body></html>`
+        uiStore.loading.subMsg = 'Generating PDF...'
+        if (typeof (window as any).jspdf === 'undefined') {
+          await loadLibrary('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+        }
+        const { jsPDF } = (window as any).jspdf
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+        const pdfWidth = doc.internal.pageSize.getWidth()
+        const imgProps = doc.getImageProperties(highResBase64)
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+        doc.addImage(highResBase64, 'JPEG', 0, 0, pdfWidth, pdfHeight)
+        doc.save(`${dynamicFileName}.pdf`)
+        uiStore.showToast('Xuất PDF tức thì thành công!', 'success')
       }
 
       uiStore.loading.subMsg = 'Syncing to Cloud...'
 
       let result: any = null
-      const needsSync = isNewOrder || hasChanges || formStore.saveType === 'pdf'
+      const needsSync = isNewOrder || hasChanges || formStore.saveType === 'save'
 
       if (needsSync) {
         result = await fetchWithRetry({ action: 'saveOrder', data: payload })
@@ -234,27 +245,11 @@ function _createBillRender() {
       }
 
       if (formStore.saveType !== 'pdf') {
-        const binStr = atob(highResBase64.split(',')[1])
-        const len = binStr.length
-        const arr = new Uint8Array(len)
-        for (let i = 0; i < len; i++) arr[i] = binStr.charCodeAt(i)
-        const blob = new Blob([arr], { type: 'image/jpeg' })
-        const blobUrl = URL.createObjectURL(blob)
-
-        const link = document.createElement('a')
-        link.href = blobUrl
-        link.download = `${dynamicFileName}.jpg`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(blobUrl)
-
+        await universalSaveImage(highResBase64, `${dynamicFileName}.jpg`)
         uiStore.loading.is = false
-        uiStore.showToast(needsSync ? 'Đồng bộ hoàn tất!' : 'Xuất ảnh thành công!', 'success')
+        uiStore.showToast(needsSync ? 'Đồng bộ hoàn tất!' : 'Xuất ảnh tức thì thành công!', 'success')
       } else {
-        if (result?.billUrl) window.open(result.billUrl, '_blank')
         uiStore.loading.is = false
-        uiStore.showToast('Đồng bộ hoàn tất!', 'success')
       }
 
       if (needsSync && result) {
@@ -273,6 +268,96 @@ function _createBillRender() {
       uiStore.error = { show: true, msg: 'Sync Error: ' + e.message }
       uiStore.loading.is = false
     }
+  }
+
+  /**
+   * Universal Image Save - Works on ALL devices/browsers
+   * Strategy:
+   *  1. Web Share API (mobile native share sheet - best UX)
+   *  2. iOS Safari: open blob in new tab (user long-presses to save)
+   *  3. Desktop / fallback: classic <a download> click
+   */
+  async function universalSaveImage(base64Data: string, filename: string) {
+    const binStr = atob(base64Data.split(',')[1])
+    const len = binStr.length
+    const arr = new Uint8Array(len)
+    for (let i = 0; i < len; i++) arr[i] = binStr.charCodeAt(i)
+    const blob = new Blob([arr], { type: 'image/jpeg' })
+
+    // --- Strategy 1: Web Share API (works great on mobile) ---
+    if (isMobile && navigator.share && navigator.canShare) {
+      try {
+        const file = new File([blob], filename, { type: 'image/jpeg' })
+        const shareData = { files: [file], title: filename }
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData)
+          return // success
+        }
+      } catch (e: any) {
+        // User cancelled share or API not supported for files
+        if (e.name === 'AbortError') return // user cancelled, that's OK
+        console.warn('[Save] Share API failed, trying fallback:', e.message)
+      }
+    }
+
+    // --- Strategy 2: iOS Safari fallback (open in new tab) ---
+    if (isIOS) {
+      try {
+        const blobUrl = URL.createObjectURL(blob)
+        const newTab = window.open(blobUrl, '_blank')
+        if (newTab) {
+          // Cleanup after some time
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+          uiStore.showToast('📱 Ảnh đã mở — nhấn giữ để lưu về máy!', 'info', 4000)
+          return
+        }
+        URL.revokeObjectURL(blobUrl)
+      } catch (e) {
+        console.warn('[Save] iOS fallback failed:', e)
+      }
+    }
+
+    // --- Strategy 3: Android WebView / in-app browser fallback ---
+    if (isAndroid) {
+      try {
+        // Try download via <a> with download attribute first
+        const blobUrl = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = filename
+        link.style.display = 'none'
+        document.body.appendChild(link)
+
+        // Use both click methods for max compatibility
+        link.click()
+        // Some Android WebViews need a timeout
+        await new Promise(r => setTimeout(r, 500))
+        document.body.removeChild(link)
+
+        // Verify download started by checking if blob URL is still valid
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 30000)
+        return
+      } catch (e) {
+        console.warn('[Save] Android download failed, opening in new tab:', e)
+        // Fallback: open in new tab
+        const blobUrl = URL.createObjectURL(blob)
+        window.open(blobUrl, '_blank')
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+        uiStore.showToast('📱 Ảnh đã mở — nhấn giữ hoặc nhấn ⋮ → Tải về!', 'info', 4000)
+        return
+      }
+    }
+
+    // --- Strategy 4: Desktop classic download ---
+    const blobUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = filename
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
   }
 
   // --- Responsive Preview Scaling ---
@@ -294,6 +379,6 @@ function _createBillRender() {
   return {
     billRef, isRendering, mobileScaleStyles, wrapperScaleStyles,
     constructFileName, triggerSave, confirmStaffAndSave, performOptimisticSave,
-    updatePreviewScale
+    updatePreviewScale, universalSaveImage
   }
 }

@@ -218,11 +218,14 @@ export const useAppStore = defineStore('app', () => {
     if (!newMenuName.value || !newMenuContent.value) {
       return uiStore.showToast('Vui lòng nhập tên và nội dung menu!', 'warning')
     }
+    const pass = await uiStore.showPrompt('Bảo mật', 'Nhập mã PIN Quản Lý để cập nhật/tạo Menu lên Cloud:')
+    if (pass === null) return
+
     uiStore.loading.is = true
     uiStore.loading.msg = uiStore.isUpdateMode ? 'ĐANG CẬP NHẬT MENU...' : 'AI ĐANG TẠO MENU...'
     uiStore.loading.subMsg = 'Processing...'
     try {
-      const data = await api.createMenu(newMenuName.value, newMenuContent.value)
+      const data = await api.createMenu(newMenuName.value, newMenuContent.value, pass)
       if (data.ok) {
         uiStore.showToast(uiStore.isUpdateMode ? 'Cập nhật thực đơn thành công!' : 'Tạo menu thành công!', 'success')
         await fetchSheets()
@@ -311,10 +314,9 @@ export const useAppStore = defineStore('app', () => {
             }
           } catch { /* ignore */ }
         }
-        if (!hasChanges) updateRemoteConfig()
-        else uiStore.showToast('Đã đồng bộ cấu hình từ Server', 'info')
-      } else {
-        updateRemoteConfig()
+        if (hasChanges) {
+          uiStore.showToast('Đã đồng bộ cấu hình từ Server', 'info')
+        }
       }
     } catch (e) {
       console.warn('Config Sync Failed (Offline Mode)', e)
@@ -322,12 +324,20 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
-  function updateRemoteConfig() {
-    uiStore.showToast('Đang lưu cấu hình...', 'info')
+  async function updateRemoteConfig() {
+    const pass = await uiStore.showPrompt('Bảo Mật Cấu Hình', 'Nhập Password Admin để lưu Bank/Staff lên Cloud (hoặc Bỏ qua để chỉ lưu tại máy này):')
+    
+    if (!pass) {
+      uiStore.showToast('Chỉ lưu cấu hình trên máy này (Chưa đồng bộ Cloud)', 'warning')
+      return
+    }
+
+    uiStore.showToast('Đang lưu cấu hình lên Server...', 'info')
     uiStore.connectionStatus = 'syncing'
     api.saveConfig(
       JSON.stringify(bankList.value),
-      JSON.stringify(staffList.value)
+      JSON.stringify(staffList.value),
+      pass
     ).then((data: any) => {
       if (data.ok) uiStore.connectionStatus = 'online'
       else {

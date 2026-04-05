@@ -101,3 +101,25 @@ export const formatSetNote = (str: string): string => {
 /** Detect iOS device */
 export const isIOS = typeof navigator !== 'undefined' &&
   (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+
+/** Detect Android device */
+export const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+
+/** Detect any mobile device (iOS, Android, tablets, WebViews) */
+export const isMobile = typeof navigator !== 'undefined' && (
+  isIOS || isAndroid ||
+  /webOS|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent) ||
+  (navigator.maxTouchPoints > 0 && window.innerWidth < 1024)
+)
+
+/** HTML escape to prevent XSS attacks */
+export const escapeHtml = (unsafe: string): string => {
+  if (!unsafe) return ''
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+

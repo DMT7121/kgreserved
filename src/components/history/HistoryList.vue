@@ -12,13 +12,19 @@ const { editHistoricOrder, resetForm } = useForm()
 async function deleteHistoricOrder(id: string) {
   const confirmed = await ui.showConfirm('Xác Nhận Xóa', 'Bạn có chắc chắn muốn xóa bản ghi này?')
   if (!confirmed) return
+  
+  const pass = await ui.showPrompt('Bảo mật', 'Nhập Password Quản Trị để xóa đơn:')
+  if (pass === null) return
+
   ui.loading.is = true
   ui.loading.msg = 'ĐANG XÓA...'
   try {
-    const res = await api.deleteOrder(id)
+    const res = await api.deleteOrder(id, pass)
     if (res.ok) {
       appStore.historyList = appStore.historyList.filter((i: any) => i.id !== id)
       ui.showToast('Đã xóa!', 'success')
+    } else {
+      ui.showToast(res.message || 'Lỗi khi xóa', 'error')
     }
   } catch (e: any) { ui.showToast(e.message, 'error') }
   finally { ui.loading.is = false }
@@ -28,6 +34,9 @@ async function deleteBatchOrders() {
   if (ui.selectedIds.length === 0) return
   const confirmed = await ui.showConfirm('Xóa Nhiều Đơn', `Bạn có chắc chắn muốn xóa vĩnh viễn ${ui.selectedIds.length} phiếu đã chọn?\nHành động này không thể hoàn tác.`)
   if (!confirmed) return
+
+  const pass = await ui.showPrompt('Bảo mật', 'Nhập Password Quản Trị để xóa hàng loạt:')
+  if (pass === null) return
 
   ui.loading.is = true
   ui.loading.msg = 'ĐANG XÓA...'
@@ -44,7 +53,7 @@ async function deleteBatchOrders() {
   let processed = 0
   for (let i = 0; i < idsToDelete.length; i += CHUNK_SIZE) {
     const chunk = idsToDelete.slice(i, i + CHUNK_SIZE)
-    await Promise.all(chunk.map(id => api.deleteOrder(id).catch(() => false)))
+    await Promise.all(chunk.map(id => api.deleteOrder(id, pass).catch(() => false)))
     processed += chunk.length
     ui.loading.subMsg = `Processing ${processed}/${idsToDelete.length}`
   }
