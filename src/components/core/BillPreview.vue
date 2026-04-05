@@ -37,7 +37,7 @@ setInterval(() => currentTimestamp.value = new Date().toLocaleString('vi-VN'), 1
           <!-- STAMP: Diagonal Corner Banner -->
           <div class="stamp-ribbon-wrapper" :class="formStore.deposit.isPaid ? 'stamp-ribbon-paid' : 'stamp-ribbon-pending'">
             <div class="stamp-ribbon">
-              <span class="stamp-ribbon-text">{{ formStore.deposit.isPaid ? 'ĐÃ CỌC' : 'CHỜ CỌC' }}</span>
+              <span class="stamp-ribbon-text">{{ formStore.deposit.isPaid ? 'ĐÃ NHẬN CỌC' : 'CHỜ CỌC' }}</span>
               <span class="stamp-ribbon-sub">{{ formStore.deposit.isPaid ? (formStore.deposit.time || '✓') : 'PENDING' }}</span>
             </div>
           </div>

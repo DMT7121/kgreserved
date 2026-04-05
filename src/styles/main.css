@@ -157,12 +157,12 @@ input, textarea, button, select, a, div[role="button"] {
 
 /* ĐÃ CỌC - Red/Green gradient */
 .stamp-ribbon-paid .stamp-ribbon {
-    background: linear-gradient(135deg, #16a34a, #15803d);
+    background: linear-gradient(135deg, #ef4444, #991b1b);
 }
 
 /* CHỜ CỌC - Blue gradient + pulse */
 .stamp-ribbon-pending .stamp-ribbon {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     animation: ribbon-pulse 2s ease-in-out infinite;
 }
 
