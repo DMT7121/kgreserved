@@ -37,7 +37,7 @@ setInterval(() => currentTimestamp.value = new Date().toLocaleString('vi-VN'), 1
           <!-- STAMP: Realistic Rubber Stamp -->
           <div class="rubber-stamp-wrapper">
             <div class="rubber-stamp" :class="formStore.deposit.isPaid ? 'rubber-stamp-paid' : 'rubber-stamp-pending'">
-              <span class="rubber-stamp-text">{{ formStore.deposit.isPaid ? 'ĐÃ NHẬN CỌC' : 'CHỜ CỌC' }}</span>
+              <span class="rubber-stamp-text">{{ formStore.deposit.isPaid ? 'Đã Nhận Cọc' : 'Chờ Cọc' }}</span>
               <span class="rubber-stamp-time">{{ formStore.deposit.isPaid ? (formStore.deposit.time || '✓') : 'PENDING' }}</span>
             </div>
           </div>

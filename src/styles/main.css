@@ -124,12 +124,12 @@ input, textarea, button, select, a, div[role="button"] {
 }
 
 .rubber-stamp-text {
-    font-family: 'Freeman', 'Be Vietnam Pro', sans-serif;
-    font-weight: 900;
-    font-size: 26px;
-    letter-spacing: 0.08em;
+    font-family: 'Praise', cursive;
+    font-weight: 400; /* Praise script font looks best at normal weight */
+    font-size: 38px;  /* Slightly larger to compensate for cursive script shape */
+    letter-spacing: 0;
     line-height: 1.1;
-    text-transform: uppercase;
+    text-transform: none; /* Keep Title Case */
 }
 
 .rubber-stamp-time {
