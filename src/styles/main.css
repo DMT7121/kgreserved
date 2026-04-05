@@ -100,75 +100,71 @@ input, textarea, button, select, a, div[role="button"] {
 }
 .bill-table tr:nth-child(even) { background-color: #f8fafc; }
 
-/* --- DIAGONAL RIBBON STAMP --- */
-.stamp-ribbon-wrapper {
+/* --- REALISTIC RUBBER STAMPS --- */
+.rubber-stamp-wrapper {
     position: absolute;
-    top: 0;
-    right: 0;
-    width: 180px;
-    height: 180px;
-    overflow: hidden;
+    top: 50px;
+    right: 40px;
     z-index: 50;
     pointer-events: none;
+    transform: rotate(-15deg);
 }
-.stamp-ribbon {
-    position: absolute;
-    top: 38px;
-    right: -45px;
-    width: 240px;
-    padding: 10px 0;
-    text-align: center;
-    transform: rotate(45deg);
-    display: flex;
+
+.rubber-stamp {
+    position: relative;
+    display: inline-flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    justify-content: center;
+    padding: 10px 24px;
+    border-radius: 12px;
+    border-width: 6px;
+    border-style: double; /* Classic double border stamp look */
+    text-align: center;
 }
-.stamp-ribbon::before,
-.stamp-ribbon::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.6), transparent);
-}
-.stamp-ribbon::before { top: 3px; }
-.stamp-ribbon::after { bottom: 3px; }
-.stamp-ribbon-text {
-    font-family: 'Be Vietnam Pro', sans-serif;
+
+.rubber-stamp-text {
+    font-family: 'Freeman', 'Be Vietnam Pro', sans-serif;
     font-weight: 900;
-    font-size: 16px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    line-height: 1;
-}
-.stamp-ribbon-sub {
-    font-family: 'Be Vietnam Pro', sans-serif;
-    font-weight: 600;
-    font-size: 9px;
-    color: rgba(255,255,255,0.85);
+    font-size: 26px;
     letter-spacing: 0.08em;
-    line-height: 1;
+    line-height: 1.1;
+    text-transform: uppercase;
 }
 
-/* ĐÃ CỌC - Red/Green gradient */
-.stamp-ribbon-paid .stamp-ribbon {
-    background: linear-gradient(135deg, #ef4444, #991b1b);
+.rubber-stamp-time {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
 }
 
-/* CHỜ CỌC - Blue gradient + pulse */
-.stamp-ribbon-pending .stamp-ribbon {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    animation: ribbon-pulse 2s ease-in-out infinite;
+/* ĐÃ CỌC - Red Rubber Stamp */
+.rubber-stamp-paid {
+    border-color: #dc2626; /* Red-600 */
+    color: #dc2626;
+    transform: rotate(8deg);
+    animation: stamp-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-@keyframes ribbon-pulse {
-    0%, 100% { opacity: 0.9; }
-    50% { opacity: 1; }
+/* CHỜ CỌC - Blue Rubber Stamp */
+.rubber-stamp-pending {
+    border-color: #2563eb; /* Blue-600 */
+    color: #2563eb;
+    transform: rotate(-5deg);
+    opacity: 0.7; /* Lighter ink to show it's pending */
+    animation: pulse-op 2s ease-in-out infinite;
+}
+
+@keyframes pulse-op {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.9; }
+}
+
+@keyframes stamp-pop {
+    0% { transform: scale(3) rotate(30deg); opacity: 0; }
+    100% { transform: scale(1) rotate(8deg); opacity: 1; }
 }
 
 /* --- ANIMATIONS & STATES --- */

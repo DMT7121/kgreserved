@@ -34,11 +34,11 @@ setInterval(() => currentTimestamp.value = new Date().toLocaleString('vi-VN'), 1
       <div :style="wrapperScaleStyles">
         <div id="bill-render" :style="mobileScaleStyles" class="bill-preview-container p-10 rounded-3xl relative">
 
-          <!-- STAMP: Diagonal Corner Banner -->
-          <div class="stamp-ribbon-wrapper" :class="formStore.deposit.isPaid ? 'stamp-ribbon-paid' : 'stamp-ribbon-pending'">
-            <div class="stamp-ribbon">
-              <span class="stamp-ribbon-text">{{ formStore.deposit.isPaid ? 'ĐÃ NHẬN CỌC' : 'CHỜ CỌC' }}</span>
-              <span class="stamp-ribbon-sub">{{ formStore.deposit.isPaid ? (formStore.deposit.time || '✓') : 'PENDING' }}</span>
+          <!-- STAMP: Realistic Rubber Stamp -->
+          <div class="rubber-stamp-wrapper">
+            <div class="rubber-stamp" :class="formStore.deposit.isPaid ? 'rubber-stamp-paid' : 'rubber-stamp-pending'">
+              <span class="rubber-stamp-text">{{ formStore.deposit.isPaid ? 'ĐÃ NHẬN CỌC' : 'CHỜ CỌC' }}</span>
+              <span class="rubber-stamp-time">{{ formStore.deposit.isPaid ? (formStore.deposit.time || '✓') : 'PENDING' }}</span>
             </div>
           </div>
 
