@@ -13,26 +13,40 @@ const { processAI, ocrExtractText } = useAI()
 const { handleInputFocus, handleInputBlur, toggleVoiceMode } = useForm()
 const aiFileIn = ref<HTMLInputElement>()
 
-async function onImageSelect(e: Event) {
-  const f = (e.target as HTMLInputElement).files?.[0]
-  if (f) {
-    const r = new FileReader()
-    r.onload = async (ev) => {
-      const base64 = ev.target?.result as string
-      formStore.aiImage = base64 // Show thumbnail temporarily
-      try {
-        const text = await ocrExtractText(base64)
-        if (text) {
-          formStore.rawInput = (formStore.rawInput ? formStore.rawInput + '\n\n' : '') + text
-          formStore.aiImage = null // Clear image so processAI focuses purely on text
-        }
-      } catch (err: any) {
-        ui.showToast('Lỗi OCR: ' + err.message, 'error')
-        // Leave image there if it failed, so user can try another way
+async function processImage(f: File) {
+  const r = new FileReader()
+  r.onload = async (ev) => {
+    const base64 = ev.target?.result as string
+    formStore.aiImage = base64 // Show thumbnail temporarily
+    try {
+      const text = await ocrExtractText(base64)
+      if (text) {
+        formStore.rawInput = (formStore.rawInput ? formStore.rawInput + '\n\n' : '') + text
+        formStore.aiImage = null // Clear image so processAI focuses purely on text
       }
-      if (aiFileIn.value) aiFileIn.value.value = '' // Reset input
+    } catch (err: any) {
+      ui.showToast('Lỗi OCR: ' + err.message, 'error')
     }
-    r.readAsDataURL(f)
+    if (aiFileIn.value) aiFileIn.value.value = '' // Reset input
+  }
+  r.readAsDataURL(f)
+}
+
+function onImageSelect(e: Event) {
+  const f = (e.target as HTMLInputElement).files?.[0]
+  if (f) processImage(f)
+}
+
+function onPaste(e: ClipboardEvent) {
+  const items = e.clipboardData?.items
+  if (!items) return
+  for (const item of items) {
+    if (item.type.indexOf('image') !== -1) {
+      e.preventDefault()
+      const f = item.getAsFile()
+      if (f) processImage(f)
+      break
+    }
   }
 }
 </script>
@@ -47,7 +61,7 @@ async function onImageSelect(e: Event) {
 
     <div class="space-y-3 relative z-10 text-white">
       <div class="relative">
-        <textarea v-model="formStore.rawInput" @focus="handleInputFocus" @blur="handleInputBlur" rows="4" class="w-full p-4 border-none rounded-2xl text-base md:text-sm bg-white/95 text-slate-800 font-medium focus:ring-4 focus:ring-yellow-400 outline-none shadow-xl placeholder-slate-400 transition-all" placeholder="Dán nội dung đặt bàn, nói 'Hey King', hoặc ghi chú tại đây..."></textarea>
+        <textarea v-model="formStore.rawInput" @focus="handleInputFocus" @blur="handleInputBlur" @paste="onPaste" rows="4" class="w-full p-4 border-none rounded-2xl text-base md:text-sm bg-white/95 text-slate-800 font-medium focus:ring-4 focus:ring-yellow-400 outline-none shadow-xl placeholder-slate-400 transition-all custom-scrollbar" placeholder="Dán nội dung đặt bàn, nói 'Hey King', hoặc paste cả ảnh Bill vào đây..."></textarea>
         <div class="absolute bottom-3 right-3 flex gap-2">
           <button v-if="ui.isVoiceSupported" @click="toggleVoiceMode" :class="['w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg active-effect', ui.listening ? 'recording-active' : 'bg-white text-blue-600 hover-effect']" title="Voice Assistant"><i class="fa-solid fa-microphone"></i></button>
           <button @click="aiFileIn?.click()" class="w-10 h-10 rounded-full bg-white text-indigo-600 flex items-center justify-center transition-all shadow-lg active-effect hover-effect" title="Upload Image"><i class="fa-solid fa-image"></i></button>

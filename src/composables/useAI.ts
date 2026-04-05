@@ -171,7 +171,9 @@ export function useAI() {
 
       const type = formStore.aiImage ? 'vision' : 'text'
       const optimizedImg = formStore.aiImage ? await resizeImage(formStore.aiImage, 1024) : null
-      const promptText = formStore.aiImage ? 'Phân tích ảnh menu/bill này để lấy thông tin đặt bàn.' : formStore.rawInput
+      const promptText = formStore.aiImage 
+        ? `Phân tích ảnh menu/bill này để lấy thông tin đặt bàn.${formStore.rawInput ? ' Ghi chú bổ sung từ người dùng:\n' + formStore.rawInput : ''}` 
+        : formStore.rawInput
 
       const aiResponse = await smartRouter(type, systemPrompt, promptText, optimizedImg)
 
