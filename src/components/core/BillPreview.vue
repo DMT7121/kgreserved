@@ -44,7 +44,7 @@ setInterval(() => currentTimestamp.value = new Date().toLocaleString('vi-VN'), 1
 
           <!-- HEADER -->
           <div class="text-center mb-10">
-            <div v-if="configStore.branding.logo" class="flex justify-center mb-4"><img :src="configStore.branding.logo" class="h-16 w-auto object-contain print-no-shadow" alt="Logo"></div>
+            <div v-if="configStore.branding.logo" class="flex justify-center mb-4"><img :src="configStore.branding.logo" class="h-[84px] w-auto object-contain print-no-shadow drop-shadow-sm" alt="Logo"></div>
             <h1 class="font-black tracking-widest text-slate-900 uppercase text-3xl" style="font-family: 'Freeman', sans-serif;">KING'S GRILL</h1>
             <h2 class="font-bold tracking-[0.3em] text-slate-500 uppercase mt-2 text-base" style="font-family: 'Freeman', sans-serif;">{{ formStore.previewTitle }}</h2>
             <div class="w-40 h-1 mx-auto mt-4 rounded-full" :style="{ backgroundColor: configStore.branding.color }"></div>
