@@ -87,15 +87,42 @@ setInterval(() => currentTimestamp.value = new Date().toLocaleString('vi-VN'), 1
           </div>
 
           <!-- QR BANK TRANSFER -->
-          <div v-if="appStore.currentBank && !formStore.deposit.isPaid" class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-3xl p-8 text-center mb-10">
-            <h3 class="font-black text-lg text-blue-900 uppercase tracking-widest mb-6">THÔNG TIN CHUYỂN KHOẢN</h3>
-            <div class="flex justify-center mb-6"><img :src="qrImageUrl" class="w-48 h-48 object-contain rounded-2xl shadow-xl border-4 border-white" alt="QR Code" crossorigin="anonymous"></div>
-            <div class="space-y-3 text-left max-w-sm mx-auto">
-              <div class="flex justify-between items-center py-2 border-b border-blue-100"><span class="text-sm font-bold text-blue-800 uppercase">Ngân hàng</span><span class="font-black text-blue-900 text-lg">{{ appStore.currentBank.name }}</span></div>
-              <div class="flex justify-between items-center py-2 border-b border-blue-100"><span class="text-sm font-bold text-blue-800 uppercase">Số TK</span><span class="font-black text-blue-900 text-lg font-mono tracking-widest">{{ appStore.currentBank.number }}</span></div>
-              <div class="flex justify-between items-center py-2 border-b border-blue-100"><span class="text-sm font-bold text-blue-800 uppercase">Chủ TK</span><span class="font-black text-blue-900 text-lg">{{ appStore.currentBank.owner }}</span></div>
-              <div class="flex justify-between items-center py-2 border-b border-blue-100"><span class="text-sm font-bold text-blue-800 uppercase">Số tiền</span><span class="font-black text-red-600 text-xl">{{ formatVND(formStore.deposit.amount) }}</span></div>
-              <div class="flex justify-between items-center py-2"><span class="text-sm font-bold text-blue-800 uppercase">Nội dung</span><span class="font-black text-indigo-600 text-sm">{{ depositTransferContent }}</span></div>
+          <div v-if="appStore.currentBank && !formStore.deposit.isPaid" class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-10 text-center mb-10 shadow-sm relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent"></div>
+            <div class="relative z-10">
+              <h3 class="font-black text-xl text-slate-800 uppercase tracking-widest mb-8">THÔNG TIN CHUYỂN KHOẢN</h3>
+              
+              <div class="flex justify-center mb-10">
+                <div class="bg-white p-4 rounded-3xl shadow-xl border border-slate-100 inline-block relative group">
+                  <div class="absolute inset-0 bg-gradient-to-br from-indigo-300 to-purple-300 rounded-3xl -z-10 blur-md opacity-30"></div>
+                  <img :src="qrImageUrl" class="w-72 h-72 object-contain rounded-2xl" alt="QR Code" crossorigin="anonymous">
+                </div>
+              </div>
+              
+              <div class="space-y-4 text-left max-w-md mx-auto">
+                <div class="flex justify-between items-center pb-3 border-b border-slate-200/70 gap-4">
+                  <span class="text-sm font-bold text-slate-500 uppercase shrink-0">Ngân hàng</span>
+                  <span class="font-black text-slate-800 text-xl text-right break-words">{{ appStore.currentBank.name }}</span>
+                </div>
+                <div class="flex justify-between items-center pb-3 border-b border-slate-200/70 gap-4">
+                  <span class="text-sm font-bold text-slate-500 uppercase shrink-0">Số tài khoản</span>
+                  <span class="font-black text-blue-700 text-2xl font-mono tracking-widest text-right break-all">{{ appStore.currentBank.number }}</span>
+                </div>
+                <div class="flex justify-between items-center pb-3 border-b border-slate-200/70 gap-4">
+                  <span class="text-sm font-bold text-slate-500 uppercase shrink-0">Chủ tài khoản</span>
+                  <span class="font-black text-slate-800 text-lg text-right break-words">{{ appStore.currentBank.owner }}</span>
+                </div>
+                <div class="flex justify-between items-center pb-4 border-b border-slate-200/70 gap-4">
+                  <span class="text-sm font-bold text-slate-500 uppercase shrink-0">Số tiền cọc</span>
+                  <span class="font-black text-red-600 text-2xl text-right">{{ formatVND(formStore.deposit.amount) }}</span>
+                </div>
+                <div class="flex flex-col pt-3 gap-3">
+                  <span class="text-sm font-bold text-red-500 uppercase text-center"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Nội dung bắt buộc (Copy Chính Xác)</span>
+                  <div class="bg-yellow-100 border-2 border-yellow-400 p-4 rounded-xl shadow-inner">
+                    <span class="font-black text-indigo-700 text-xl block text-center tracking-widest uppercase break-words">{{ depositTransferContent }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

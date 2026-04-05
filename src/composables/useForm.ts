@@ -134,9 +134,11 @@ function _createForm() {
 
   // --- Deposit Transfer Computed ---
   const depositTransferContent = computed(() => {
-    const d = formStore.customer.date.replace(/\D/g, '')
-    const n = stripAccents(formStore.customer.name).substring(0, 20).toUpperCase()
-    return `${n} COC ${d}`.trim()
+    let n = stripAccents(formStore.customer.name).substring(0, 20).toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim()
+    if (!n) n = 'KH'
+    const p = formStore.customer.phone ? formStore.customer.phone.replace(/\D/g, '').slice(-4) : ''
+    const idSuf = (formStore.id || '').replace(/-/g, '').substring(0, 4).toUpperCase()
+    return `${n} DAT COC ${p} ${idSuf}`.trim()
   })
 
   const qrImageUrl = computed(() => {
