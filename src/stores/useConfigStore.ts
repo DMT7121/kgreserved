@@ -128,16 +128,46 @@ export const useConfigStore = defineStore('config', () => {
 
   // --- Branding ---
   function saveBranding() {
-    localStorage.setItem(CACHE_KEYS.BRANDING, JSON.stringify(branding))
-    uiStore.showToast('Đã lưu giao diện!', 'success')
-    uiStore.showBrandingConfig = false
+    try {
+      localStorage.setItem(CACHE_KEYS.BRANDING, JSON.stringify(branding))
+      uiStore.showToast('Đã lưu giao diện!', 'success')
+      uiStore.showBrandingConfig = false
+    } catch (e) {
+      uiStore.showToast('Dung lượng ảnh vượt quá giới hạn trình duyệt. Thử cập nhật ảnh nhỏ hơn!', 'error')
+      console.error('Storage limit exceeded:', e)
+    }
   }
 
   function handleLogoUpload(e: Event) {
     const f = (e.target as HTMLInputElement).files?.[0]
     if (f) {
       const r = new FileReader()
-      r.onload = (ev) => { branding.logo = ev.target?.result }
+      r.onload = (ev) => { 
+        const result = ev.target?.result as string
+        const img = new Image()
+        img.onload = () => {
+          const MAX_HEIGHT = 400
+          let width = img.width
+          let height = img.height
+
+          if (height > MAX_HEIGHT) {
+            width = Math.floor(width * (MAX_HEIGHT / height))
+            height = MAX_HEIGHT
+          }
+
+          const canvas = document.createElement('canvas')
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height)
+            branding.logo = canvas.toDataURL('image/webp', 0.8)
+          } else {
+            branding.logo = result
+          }
+        }
+        img.src = result
+      }
       r.readAsDataURL(f)
     }
   }
