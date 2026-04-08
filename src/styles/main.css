@@ -112,32 +112,39 @@ input, textarea, button, select, a, div[role="button"] {
 
 .rubber-stamp {
     position: relative;
-    display: inline-block;
-    padding: 12px 24px 10px 24px;
+    width: 240px;
+    height: 100px;
     border-radius: 12px;
     border-width: 6px;
     border-style: double;
     text-align: center;
+    background-color: transparent;
 }
 
 .rubber-stamp-text {
-    display: block;
+    position: absolute;
+    top: 18px;
+    left: 0;
+    width: 100%;
     font-family: 'Praise', cursive;
     font-weight: 400;
     font-size: 42px;
     letter-spacing: 0;
     line-height: 1;
     text-transform: none;
-    padding-bottom: 2px;
+    text-align: center;
 }
 
 .rubber-stamp-time {
-    display: block;
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    width: 100%;
     font-family: 'Courier New', Courier, monospace;
     font-weight: 800;
     font-size: 13px;
     letter-spacing: 0.1em;
-    margin-top: 4px;
+    text-align: center;
 }
 
 /* ĐÃ CỌC - Red Rubber Stamp */
