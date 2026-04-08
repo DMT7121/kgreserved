@@ -25,9 +25,9 @@ setInterval(() => currentTimestamp.value = new Date().toLocaleString('vi-VN'), 1
     <div class="p-4 md:p-8">
       <!-- KDS Controls -->
       <div class="flex gap-2 mb-4 justify-center no-print">
-        <button @click="formStore.billMode = 'full'" :class="['px-6 py-2 rounded-xl font-black text-xs uppercase transition-all min-h-[40px] active-effect', formStore.billMode === 'full' ? 'bg-white text-slate-800 shadow-lg' : 'bg-white/20 text-white/70 hover:bg-white/30']">Full Bill</button>
-        <button @click="formStore.billMode = 'kitchen'" :class="['px-6 py-2 rounded-xl font-black text-xs uppercase transition-all min-h-[40px] active-effect', formStore.billMode === 'kitchen' ? 'bg-orange-500 text-white shadow-lg' : 'bg-white/20 text-white/70 hover:bg-white/30']">🔥 Bếp</button>
-        <button @click="formStore.billMode = 'bar'" :class="['px-6 py-2 rounded-xl font-black text-xs uppercase transition-all min-h-[40px] active-effect', formStore.billMode === 'bar' ? 'bg-purple-500 text-white shadow-lg' : 'bg-white/20 text-white/70 hover:bg-white/30']">🍸 Quầy Bar</button>
+        <button @click="formStore.billMode = 'full'" :class="['px-6 py-2 rounded-xl font-black text-xs uppercase transition-all min-h-[40px] active-effect', formStore.billMode === 'full' ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700']">Full Bill</button>
+        <button @click="formStore.billMode = 'kitchen'" :class="['px-6 py-2 rounded-xl font-black text-xs uppercase transition-all min-h-[40px] active-effect', formStore.billMode === 'kitchen' ? 'bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.5)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700']">🔥 Bếp</button>
+        <button @click="formStore.billMode = 'bar'" :class="['px-6 py-2 rounded-xl font-black text-xs uppercase transition-all min-h-[40px] active-effect', formStore.billMode === 'bar' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700']">🍸 Quầy Bar</button>
       </div>
 
       <!-- Scaled wrapper -->

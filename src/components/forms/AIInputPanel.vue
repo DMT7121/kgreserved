@@ -52,19 +52,19 @@ function onPaste(e: ClipboardEvent) {
 </script>
 
 <template>
-  <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-5 rounded-3xl shadow-2xl relative overflow-hidden group">
-    <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none transform translate-x-4 -translate-y-4"><i class="fa-solid fa-bolt-lightning text-8xl text-white"></i></div>
+  <div class="glass-panel p-5 rounded-3xl shadow-[0_0_30px_rgba(99,102,241,0.2)] border border-[rgba(255,255,255,0.1)] relative overflow-hidden group">
+    <div class="absolute top-0 right-0 p-8 opacity-5 pointer-events-none transform translate-x-4 -translate-y-4"><i class="fa-solid fa-bolt-lightning text-8xl text-indigo-200"></i></div>
     <div class="flex justify-between items-center mb-4 relative z-10">
-      <h3 class="font-black text-white text-xs uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-wand-sparkles text-yellow-300"></i> AI Core v4.0</h3>
+      <h3 class="font-black text-indigo-300 text-xs uppercase tracking-widest flex items-center gap-2 drop-shadow-[0_0_5px_currentColor]"><i class="fa-solid fa-wand-sparkles text-yellow-300"></i> AI Core v4.0</h3>
       <span class="text-[9px] px-2 py-1 bg-white/20 text-white rounded-full font-black uppercase backdrop-blur-md border border-white/20" :class="{'animate-pulse': ui.listening}">{{ ui.listening ? 'LISTENING...' : 'SMART ROUTING ON' }}</span>
     </div>
 
     <div class="space-y-3 relative z-10 text-white">
       <div class="relative">
-        <textarea v-model="formStore.rawInput" @focus="handleInputFocus" @blur="handleInputBlur" @paste="onPaste" rows="4" class="w-full p-4 border-none rounded-2xl text-base md:text-sm bg-white/95 text-slate-800 font-medium focus:ring-4 focus:ring-yellow-400 outline-none shadow-xl placeholder-slate-400 transition-all custom-scrollbar" placeholder="Dán nội dung đặt bàn, nói 'Hey King', hoặc paste cả ảnh Bill vào đây..."></textarea>
+        <textarea v-model="formStore.rawInput" @focus="handleInputFocus" @blur="handleInputBlur" @paste="onPaste" rows="4" class="w-full glass-input p-4 border-none rounded-2xl text-base md:text-sm text-white font-medium focus:ring-4 focus:ring-indigo-500/50 outline-none shadow-xl placeholder-indigo-200/50 transition-all custom-scrollbar bg-[rgba(15,23,42,0.4)]" placeholder="Dán nội dung đặt bàn, nói 'Hey King', hoặc paste cả ảnh Bill vào đây..."></textarea>
         <div class="absolute bottom-3 right-3 flex gap-2">
-          <button v-if="ui.isVoiceSupported" @click="toggleVoiceMode" :class="['w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg active-effect', ui.listening ? 'recording-active' : 'bg-white text-blue-600 hover-effect']" title="Voice Assistant"><i class="fa-solid fa-microphone"></i></button>
-          <button @click="aiFileIn?.click()" class="w-10 h-10 rounded-full bg-white text-indigo-600 flex items-center justify-center transition-all shadow-lg active-effect hover-effect" title="Upload Image"><i class="fa-solid fa-image"></i></button>
+          <button v-if="ui.isVoiceSupported" @click="toggleVoiceMode" :class="['w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg active-effect', ui.listening ? 'recording-active' : 'bg-[rgba(99,102,241,0.2)] text-indigo-300 hover:bg-[rgba(99,102,241,0.4)] hover-effect border border-[rgba(99,102,241,0.3)]']" title="Voice Assistant"><i class="fa-solid fa-microphone"></i></button>
+          <button @click="aiFileIn?.click()" class="w-10 h-10 rounded-full bg-[rgba(99,102,241,0.2)] text-indigo-300 border border-[rgba(99,102,241,0.3)] flex items-center justify-center transition-all shadow-lg active-effect hover-effect hover:bg-[rgba(99,102,241,0.4)]" title="Upload Image"><i class="fa-solid fa-image"></i></button>
           <input type="file" ref="aiFileIn" @change="onImageSelect" class="hidden" accept="image/*">
         </div>
       </div>
@@ -79,8 +79,8 @@ function onPaste(e: ClipboardEvent) {
       </div>
     </div>
 
-    <button @click="processAI" class="w-full mt-4 bg-yellow-400 text-slate-900 py-4 rounded-2xl font-black text-sm hover:bg-yellow-300 shadow-xl flex justify-center items-center gap-3 active:scale-95 transition-all min-h-[50px] active-effect" :style="{ backgroundColor: configStore.branding.color }">
-      <i class="fa-solid fa-rocket animate-bounce"></i> PHÂN TÍCH ĐA LUỒNG (QUICK EXTRACT)
+    <button @click="processAI" class="w-full mt-4 bg-indigo-600 text-white py-4 rounded-2xl font-black text-sm hover:bg-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.4)] flex justify-center items-center gap-3 active:scale-95 transition-all min-h-[50px] active-effect border border-indigo-400/30" :style="{ backgroundColor: configStore.branding.color }">
+      <i class="fa-solid fa-rocket animate-pulse drop-shadow-[0_0_5px_currentColor]"></i> PHÂN TÍCH ĐA LUỒNG (QUICK EXTRACT)
     </button>
   </div>
 </template>

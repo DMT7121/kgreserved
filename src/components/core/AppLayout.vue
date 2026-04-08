@@ -101,10 +101,10 @@ onMounted(() => {
     <!-- Alert -->
     <transition name="modal">
     <div v-if="ui.modal.alert.show" class="fixed inset-0 bg-black/60 z-[12000] flex justify-center items-center p-4 backdrop-blur-sm">
-      <div class="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full border-t-8 border-blue-500">
-        <h3 class="text-lg font-black text-slate-800 mb-2 uppercase">{{ ui.modal.alert.title }}</h3>
-        <p class="text-sm text-gray-600 mb-6 font-medium whitespace-pre-line">{{ ui.modal.alert.msg }}</p>
-        <button @click="ui.resolveModal('alert')" class="w-full py-3 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest min-h-[44px] active-effect">Đã Hiểu</button>
+      <div class="glass-panel shadow-2xl p-6 max-w-sm w-full border-t-8 border-blue-500">
+        <h3 class="text-lg font-black text-white mb-2 uppercase">{{ ui.modal.alert.title }}</h3>
+        <p class="text-sm text-slate-300 mb-6 font-medium whitespace-pre-line">{{ ui.modal.alert.msg }}</p>
+        <button @click="ui.resolveModal('alert')" class="w-full py-3 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest min-h-[44px] active-effect hover:bg-blue-500 transition">Đã Hiểu</button>
       </div>
     </div>
     </transition>
@@ -112,12 +112,12 @@ onMounted(() => {
     <!-- Confirm -->
     <transition name="modal">
     <div v-if="ui.modal.confirm.show" class="fixed inset-0 bg-black/60 z-[12000] flex justify-center items-center p-4 backdrop-blur-sm">
-      <div class="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full border-t-8 border-red-500">
-        <h3 class="text-lg font-black text-slate-800 mb-2 uppercase">{{ ui.modal.confirm.title }}</h3>
-        <p class="text-sm text-gray-600 mb-6 font-medium whitespace-pre-line">{{ ui.modal.confirm.msg }}</p>
+      <div class="glass-panel shadow-2xl p-6 max-w-sm w-full border-t-8 border-red-500">
+        <h3 class="text-lg font-black text-white mb-2 uppercase">{{ ui.modal.confirm.title }}</h3>
+        <p class="text-sm text-slate-300 mb-6 font-medium whitespace-pre-line">{{ ui.modal.confirm.msg }}</p>
         <div class="grid grid-cols-2 gap-3">
-          <button @click="ui.resolveModal('confirm', false)" class="py-3 bg-gray-100 text-gray-600 rounded-xl font-black uppercase min-h-[44px] active-effect">Hủy</button>
-          <button @click="ui.resolveModal('confirm', true)" class="py-3 bg-red-600 text-white rounded-xl font-black uppercase min-h-[44px] active-effect shadow-lg shadow-red-200">Đồng Ý</button>
+          <button @click="ui.resolveModal('confirm', false)" class="py-3 bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 rounded-xl font-black uppercase min-h-[44px] active-effect transition">Hủy</button>
+          <button @click="ui.resolveModal('confirm', true)" class="py-3 bg-red-600 text-white rounded-xl font-black uppercase min-h-[44px] active-effect shadow-[0_0_15px_rgba(220,38,38,0.5)] transition hover:bg-red-500">Đồng Ý</button>
         </div>
       </div>
     </div>
@@ -126,57 +126,57 @@ onMounted(() => {
     <!-- Prompt -->
     <transition name="modal">
     <div v-if="ui.modal.prompt.show" class="fixed inset-0 bg-black/60 z-[12000] flex justify-center items-center p-4 backdrop-blur-sm">
-      <div class="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full border-t-8 border-purple-500">
-        <h3 class="text-lg font-black text-slate-800 mb-2 uppercase">{{ ui.modal.prompt.title }}</h3>
-        <p class="text-xs text-gray-500 mb-3 font-bold uppercase">{{ ui.modal.prompt.msg }}</p>
-        <input v-model="ui.modal.prompt.value" ref="promptInput" class="w-full border-2 border-gray-200 rounded-xl p-3 mb-6 font-bold text-slate-800 focus:border-purple-500 outline-none" placeholder="Nhập nội dung...">
+      <div class="glass-panel shadow-2xl p-6 max-w-sm w-full border-t-8 border-indigo-500">
+        <h3 class="text-lg font-black text-white mb-2 uppercase">{{ ui.modal.prompt.title }}</h3>
+        <p class="text-xs text-indigo-300 mb-3 font-bold uppercase">{{ ui.modal.prompt.msg }}</p>
+        <input v-model="ui.modal.prompt.value" ref="promptInput" class="w-full glass-input rounded-xl p-3 mb-6 font-bold text-white transition focus:shadow-[0_0_15px_rgba(99,102,241,0.5)]" placeholder="Nhập nội dung...">
         <div class="grid grid-cols-2 gap-3">
-          <button @click="ui.resolveModal('prompt', null)" class="py-3 bg-gray-100 text-gray-600 rounded-xl font-black uppercase min-h-[44px] active-effect">Hủy</button>
-          <button @click="ui.resolveModal('prompt', ui.modal.prompt.value)" class="py-3 bg-purple-600 text-white rounded-xl font-black uppercase min-h-[44px] active-effect shadow-lg shadow-purple-200">Xác Nhận</button>
+          <button @click="ui.resolveModal('prompt', null)" class="py-3 bg-slate-800 text-slate-300 border border-slate-700 rounded-xl font-black uppercase min-h-[44px] active-effect hover:bg-slate-700 transition">Hủy</button>
+          <button @click="ui.resolveModal('prompt', ui.modal.prompt.value)" class="py-3 bg-indigo-600 text-white rounded-xl font-black uppercase min-h-[44px] active-effect shadow-[0_0_15px_rgba(99,102,241,0.5)] transition hover:bg-indigo-500">Xác Nhận</button>
         </div>
       </div>
     </div>
     </transition>
 
     <!-- ERROR MODAL -->
-    <div v-if="ui.error.show" class="fixed inset-0 bg-black/60 z-50 flex justify-center items-center p-4 backdrop-blur-sm" @click.self="ui.error.show = false">
-      <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-[95%] md:w-full border-l-8 border-red-500">
-        <h3 class="text-xl font-black text-red-600 mb-4 flex items-center gap-2"><i class="fa-solid fa-bolt-lightning"></i> AI Error</h3>
-        <div class="bg-red-50 p-4 rounded-xl text-xs font-mono mb-4 max-h-40 overflow-y-auto border border-red-100">{{ ui.error.msg }}</div>
+    <div v-if="ui.error.show" class="fixed inset-0 bg-black/80 z-50 flex justify-center items-center p-4 backdrop-blur-md" @click.self="ui.error.show = false">
+      <div class="glass-panel p-6 max-w-sm w-[95%] md:w-full border-l-4 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+        <h3 class="text-xl font-black text-red-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-bolt-lightning"></i> AI Error</h3>
+        <div class="bg-red-950/50 p-4 rounded-xl text-xs font-mono mb-4 max-h-40 overflow-y-auto border border-red-900/50 text-red-200">{{ ui.error.msg }}</div>
         <div class="flex gap-3">
-          <button @click="copyToClipboard(ui.error.msg)" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-600 min-h-[44px]">Copy log</button>
-          <button @click="ui.error.show = false" class="px-6 py-3 bg-red-600 text-white rounded-xl font-bold shadow-lg shadow-red-200 min-h-[44px]">Đóng</button>
+          <button @click="copyToClipboard(ui.error.msg)" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 transition rounded-xl font-bold text-slate-300 min-h-[44px] border border-slate-700">Copy log</button>
+          <button @click="ui.error.show = false" class="px-6 py-3 bg-red-600 hover:bg-red-500 transition text-white rounded-xl font-bold shadow-[0_0_15px_rgba(220,38,38,0.5)] min-h-[44px]">Đóng</button>
         </div>
       </div>
     </div>
 
     <!-- SETTINGS HUB MODAL -->
-    <div v-if="ui.showSettingsHub" class="fixed inset-0 bg-black/60 z-50 flex justify-center items-center p-4 backdrop-blur-sm" @click.self="ui.showSettingsHub = false">
-      <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-[95%] md:w-full flex flex-col">
+    <div v-if="ui.showSettingsHub" class="fixed inset-0 bg-black/80 z-50 flex justify-center items-center p-4 backdrop-blur-md" @click.self="ui.showSettingsHub = false">
+      <div class="glass-panel p-8 max-w-md w-[95%] md:w-full flex flex-col border border-[rgba(255,255,255,0.1)] shadow-[0_0_50px_rgba(99,102,241,0.2)]">
         <div class="flex justify-between items-center mb-6">
-          <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter"><i class="fa-solid fa-gear text-slate-600 mr-2"></i>Cài Đặt Hệ Thống</h3>
-          <button @click="ui.showSettingsHub = false" class="text-gray-400 hover:text-red-500 transition-colors p-2 min-h-[44px] min-w-[44px]"><i class="fa-solid fa-circle-xmark text-3xl"></i></button>
+          <h3 class="text-2xl font-black text-white uppercase tracking-tighter"><i class="fa-solid fa-gear text-indigo-400 mr-2 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]"></i>Cài Đặt Hệ Thống</h3>
+          <button @click="ui.showSettingsHub = false" class="text-slate-400 hover:text-red-400 transition-colors p-2 min-h-[44px] min-w-[44px]"><i class="fa-solid fa-circle-xmark text-3xl"></i></button>
         </div>
         <div class="grid grid-cols-2 gap-4">
-          <button @click="ui.openConfig('branding')" class="p-6 bg-blue-50 border-2 border-blue-100 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-blue-100 hover:border-blue-300 transition-all active:scale-95 group min-h-[120px]">
-            <i class="fa-solid fa-palette text-3xl text-blue-500 group-hover:scale-110 transition-transform"></i>
-            <span class="font-black text-xs uppercase text-slate-600 tracking-wide">Giao Diện</span>
+          <button @click="ui.openConfig('branding')" class="p-6 bg-[rgba(59,130,246,0.1)] border border-[rgba(59,130,246,0.2)] hover:bg-[rgba(59,130,246,0.2)] hover:border-[rgba(59,130,246,0.4)] rounded-2xl flex flex-col items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all active:scale-95 group min-h-[120px]">
+            <i class="fa-solid fa-palette text-3xl text-blue-400 group-hover:scale-110 group-hover:text-blue-300 transition-all drop-shadow-[0_0_8px_currentColor]"></i>
+            <span class="font-black text-xs uppercase text-slate-300 tracking-wide mt-2">Giao Diện</span>
           </button>
-          <button @click="ui.openConfig('menu')" class="p-6 bg-green-50 border-2 border-green-100 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-green-100 hover:border-green-300 transition-all active:scale-95 group min-h-[120px]">
-            <i class="fa-solid fa-utensils text-3xl text-green-500 group-hover:scale-110 transition-transform"></i>
-            <span class="font-black text-xs uppercase text-slate-600 tracking-wide">Thực Đơn</span>
+          <button @click="ui.openConfig('menu')" class="p-6 bg-[rgba(34,197,94,0.1)] border border-[rgba(34,197,94,0.2)] hover:bg-[rgba(34,197,94,0.2)] hover:border-[rgba(34,197,94,0.4)] rounded-2xl flex flex-col items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-all active:scale-95 group min-h-[120px]">
+            <i class="fa-solid fa-utensils text-3xl text-green-400 group-hover:scale-110 group-hover:text-green-300 transition-all drop-shadow-[0_0_8px_currentColor]"></i>
+            <span class="font-black text-xs uppercase text-slate-300 tracking-wide mt-2">Thực Đơn</span>
           </button>
-          <button @click="ui.openConfig('bank')" class="p-6 bg-purple-50 border-2 border-purple-100 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-purple-100 hover:border-purple-300 transition-all active:scale-95 group min-h-[120px]">
-            <i class="fa-solid fa-building-columns text-3xl text-purple-500 group-hover:scale-110 transition-transform"></i>
-            <span class="font-black text-xs uppercase text-slate-600 tracking-wide">Ngân Hàng</span>
+          <button @click="ui.openConfig('bank')" class="p-6 bg-[rgba(168,85,247,0.1)] border border-[rgba(168,85,247,0.2)] hover:bg-[rgba(168,85,247,0.2)] hover:border-[rgba(168,85,247,0.4)] rounded-2xl flex flex-col items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all active:scale-95 group min-h-[120px]">
+            <i class="fa-solid fa-building-columns text-3xl text-purple-400 group-hover:scale-110 group-hover:text-purple-300 transition-all drop-shadow-[0_0_8px_currentColor]"></i>
+            <span class="font-black text-xs uppercase text-slate-300 tracking-wide mt-2">Ngân Hàng</span>
           </button>
-          <button @click="ui.openConfig('staff')" class="p-6 bg-orange-50 border-2 border-orange-100 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-orange-100 hover:border-orange-300 transition-all active:scale-95 group min-h-[120px]">
-            <i class="fa-solid fa-users-gear text-3xl text-orange-500 group-hover:scale-110 transition-transform"></i>
-            <span class="font-black text-xs uppercase text-slate-600 tracking-wide">Nhân Viên</span>
+          <button @click="ui.openConfig('staff')" class="p-6 bg-[rgba(249,115,22,0.1)] border border-[rgba(249,115,22,0.2)] hover:bg-[rgba(249,115,22,0.2)] hover:border-[rgba(249,115,22,0.4)] rounded-2xl flex flex-col items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-all active:scale-95 group min-h-[120px]">
+            <i class="fa-solid fa-users-gear text-3xl text-orange-400 group-hover:scale-110 group-hover:text-orange-300 transition-all drop-shadow-[0_0_8px_currentColor]"></i>
+            <span class="font-black text-xs uppercase text-slate-300 tracking-wide mt-2">Nhân Viên</span>
           </button>
-          <button @click="ui.openConfig('ai')" class="col-span-2 p-4 bg-slate-100 border-2 border-slate-200 rounded-2xl flex items-center justify-center gap-3 hover:bg-slate-200 hover:border-slate-300 transition-all active:scale-95 min-h-[60px]">
-            <i class="fa-solid fa-microchip text-xl text-slate-600"></i>
-            <span class="font-black text-xs uppercase text-slate-600 tracking-wide">Cấu hình AI Core v4.0</span>
+          <button @click="ui.openConfig('ai')" class="col-span-2 p-4 bg-[rgba(15,23,42,0.8)] border border-[rgba(255,255,255,0.1)] rounded-2xl flex items-center justify-center gap-3 hover:bg-[rgba(30,41,59,0.8)] hover:border-indigo-500/50 transition-all hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] active:scale-95 min-h-[60px] group">
+            <i class="fa-solid fa-microchip text-xl text-indigo-400 group-hover:text-indigo-300 transition drop-shadow-[0_0_5px_currentColor]"></i>
+            <span class="font-black text-xs uppercase text-indigo-100 tracking-wide">Cấu hình AI Core v4.0</span>
           </button>
         </div>
       </div>
