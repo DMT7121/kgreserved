@@ -112,31 +112,31 @@ input, textarea, button, select, a, div[role="button"] {
 
 .rubber-stamp {
     position: relative;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 24px;
+    display: inline-block;
+    padding: 12px 24px 10px 24px;
     border-radius: 12px;
     border-width: 6px;
-    border-style: double; /* Classic double border stamp look */
+    border-style: double;
     text-align: center;
 }
 
 .rubber-stamp-text {
+    display: block;
     font-family: 'Praise', cursive;
-    font-weight: 400; /* Praise script font looks best at normal weight */
-    font-size: 38px;  /* Slightly larger to compensate for cursive script shape */
+    font-weight: 400;
+    font-size: 42px;
     letter-spacing: 0;
-    line-height: 1.1;
-    text-transform: none; /* Keep Title Case */
+    line-height: 1;
+    text-transform: none;
+    padding-bottom: 2px;
 }
 
 .rubber-stamp-time {
+    display: block;
     font-family: 'Courier New', Courier, monospace;
     font-weight: 800;
-    font-size: 11px;
-    letter-spacing: 0.05em;
+    font-size: 13px;
+    letter-spacing: 0.1em;
     margin-top: 4px;
 }
 
