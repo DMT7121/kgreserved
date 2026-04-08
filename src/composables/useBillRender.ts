@@ -176,7 +176,7 @@ function _createBillRender() {
       )
 
       // Smart upload transfer image if exists
-      let transferUpload = { url: formStore.deposit.image || '', source: 'base64' as const }
+      let transferUpload: { url: string; source: 'r2' | 'base64'; key?: string } = { url: formStore.deposit.image || '', source: 'base64' }
       if (formStore.deposit.image && formStore.deposit.image.includes('base64')) {
         transferUpload = await smartUploadImage(
           formStore.deposit.image,

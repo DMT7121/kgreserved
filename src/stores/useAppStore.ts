@@ -76,9 +76,11 @@ export const useAppStore = defineStore('app', () => {
       const key = order.id || `${order.parsedCustomer.name}|${order.parsedCustomer.phone}|${order.parsedCustomer.date}`
       if (!groups[key]) groups[key] = { latest: order, versions: [] }
       groups[key].versions.push(order)
-      const isNewer = order.version && groups[key].latest.version
-        ? order.version > groups[key].latest.version
-        : new Date(order.timestamp) > new Date(groups[key].latest.timestamp)
+      const currVers = order.version ?? 0
+      const latestVers = groups[key].latest.version ?? 0
+      const isNewer = currVers && latestVers
+        ? currVers > latestVers
+        : new Date(order.timestamp || 0).getTime() > new Date(groups[key].latest.timestamp || 0).getTime()
       if (isNewer) groups[key].latest = order
     })
     return groups

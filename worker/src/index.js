@@ -150,8 +150,58 @@ export default {
         }, 200, corsHeaders);
       }
 
-      return jsonResponse({ ok: false, message: 'Not found' }, 404, corsHeaders);
+      // --- AI PROXY: POST /ai-proxy ---
+      if (request.method === 'POST' && path === '/ai-proxy') {
+        const targetUrl = request.headers.get('x-target-url');
+        const geminiKey = request.headers.get('x-gemini-key');
+        
+        if (!targetUrl) {
+          return jsonResponse({ ok: false, message: 'Missing target URL' }, 400, corsHeaders);
+        }
 
+        let finalUrl = targetUrl;
+        if (geminiKey && targetUrl.includes('generativelanguage')) {
+          finalUrl += `?key=${geminiKey}`;
+        }
+
+        // Clone the request body
+        const bodyText = await request.text();
+        
+        // Clone headers but remove proxy specific ones
+        const fetchHeaders = new Headers();
+        fetchHeaders.set('Content-Type', 'application/json');
+        
+        const auth = request.headers.get('Authorization');
+        if (auth) fetchHeaders.set('Authorization', auth);
+        
+        const referer = request.headers.get('HTTP-Referer');
+        if (referer) fetchHeaders.set('HTTP-Referer', referer);
+        
+        const title = request.headers.get('X-Title');
+        if (title) fetchHeaders.set('X-Title', title);
+
+        try {
+          const upstreamRes = await fetch(finalUrl, {
+            method: 'POST',
+            headers: fetchHeaders,
+            body: bodyText
+          });
+          
+          const upstreamText = await upstreamRes.text();
+          
+          const responseHeaders = new Headers(corsHeaders);
+          responseHeaders.set('Content-Type', 'application/json');
+          
+          return new Response(upstreamText, {
+            status: upstreamRes.status,
+            headers: responseHeaders
+          });
+        } catch (e) {
+          return jsonResponse({ ok: false, message: 'Proxy fetch failed: ' + e.message }, 500, corsHeaders);
+        }
+      }
+
+      return jsonResponse({ ok: false, message: 'Not found' }, 404, corsHeaders);
     } catch (err) {
       return jsonResponse({ ok: false, message: err.message }, 500, corsHeaders);
     }

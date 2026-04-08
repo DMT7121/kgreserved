@@ -64,7 +64,24 @@ export function useAI() {
           }
         }
 
-        const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) })
+        let fetchUrl = url
+        let fetchHeaders = { ...headers }
+        const r2Url = import.meta.env.VITE_R2_URL
+
+        if (model.format === 'openai' || model.format === 'gemini') {
+           if (r2Url && !url.includes('pollinations')) {
+             fetchUrl = `${r2Url}/ai-proxy`
+             fetchHeaders['x-target-url'] = url
+             if (model.format === 'gemini') {
+               fetchHeaders['x-gemini-key'] = key
+               delete fetchHeaders['Authorization']
+             }
+           } else if (model.format === 'gemini') {
+             fetchUrl += `?key=${key}`
+           }
+        }
+
+        const res = await fetch(fetchUrl, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(body) })
         if (res.status === 429) throw new Error('Rate limit / Quota exceeded')
         if (!res.ok) throw new Error(await res.text())
 
@@ -315,7 +332,7 @@ Yêu cầu:
 
             // Clean up the result - remove markdown code blocks if any
             let cleanText = rawResult.trim()
-            cleanText = cleanText.replace(/^```[\w]*\n?/gm, '').replace(/```$/gm, '').trim()
+            cleanText = cleanText.replace(/```[a-zA-Z]*\n([\s\S]*?)```/g, '$1').trim()
 
             uiStore.showToast(
               `<b>OCR Thành công ⚡</b><br/>Model: <span class="text-indigo-600">${model.name}</span><br/>Tốc độ: ${latency}s`,
