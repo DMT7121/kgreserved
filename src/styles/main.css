@@ -113,22 +113,24 @@ input, textarea, button, select, a, div[role="button"] {
 .rubber-stamp {
     position: relative;
     display: inline-block;
-    padding: 10px 24px 6px 24px; /* Slightly less bottom padding to balance */
+    width: 210px;
+    padding: 12px 0 8px 0;
     border-radius: 12px;
-    border-width: 6px;
-    border-style: double; /* Classic double border stamp look */
+    border-width: 5px;
+    border-style: double;
     text-align: center;
 }
 
 .rubber-stamp-text {
     display: block;
     font-family: 'Praise', cursive;
-    font-weight: 400; /* Praise script font looks best at normal weight */
-    font-size: 38px;  /* Slightly larger to compensate for cursive script shape */
+    font-weight: 400;
+    font-size: 38px;
     letter-spacing: 0;
-    line-height: 1.1;
-    text-transform: none; /* Keep Title Case */
-    margin-bottom: -2px; /* Pull the time up slightly */
+    line-height: 42px;
+    height: 42px;
+    text-transform: none;
+    overflow: visible;
 }
 
 .rubber-stamp-time {
@@ -137,6 +139,8 @@ input, textarea, button, select, a, div[role="button"] {
     font-weight: 800;
     font-size: 11px;
     letter-spacing: 0.05em;
+    line-height: 14px;
+    margin-top: 4px;
 }
 
 /* ĐÃ CỌC - Red Rubber Stamp */
