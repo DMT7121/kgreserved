@@ -109,7 +109,10 @@ function _createBillRender() {
       container.style.cssText = 'position:fixed;top:0;left:-9999px;width:800px;z-index:-9999;visibility:visible;opacity:1;pointer-events:none;'
       const clone = originalElement.cloneNode(true) as HTMLElement
       clone.style.cssText = 'transform:none !important;margin:0;width:800px;min-height:100px;'
-      clone.removeAttribute('id')
+      
+      const originalId = originalElement.id
+      originalElement.id = '' // temporarily clear so CSS targets the clone properly
+
       container.appendChild(clone)
       document.body.appendChild(container)
       const elementToRender = clone
@@ -153,6 +156,7 @@ function _createBillRender() {
       }
 
       if (container) document.body.removeChild(container)
+      originalElement.id = originalId // restore original ID
       window.scrollTo(currentScrollX, currentScrollY)
 
       if (!canvas) throw new Error('Render ảnh thất bại. Vui lòng chuyển sang tab Bill rồi thử lại.')

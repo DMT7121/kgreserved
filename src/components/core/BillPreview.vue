@@ -21,7 +21,7 @@ setInterval(() => currentTimestamp.value = new Date().toLocaleString('vi-VN'), 1
 
 <template>
   <!-- RIGHT PANEL (BILL PREVIEW) -->
-  <div v-show="ui.tab === 'preview' || true" :class="['w-full md:w-7/12 overflow-y-auto bill-preview-wrapper', ui.tab !== 'preview' ? 'hidden md:block' : '']" class="custom-scrollbar">
+  <div v-show="ui.tab === 'preview' || true" :class="['w-full md:w-7/12 flex-1 overflow-y-auto bill-preview-wrapper', ui.tab !== 'preview' ? 'hidden md:block' : '']" class="custom-scrollbar">
     <div class="p-4 md:p-8">
       <!-- KDS Controls -->
       <div class="flex gap-2 mb-4 justify-center no-print">

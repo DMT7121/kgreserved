@@ -22,7 +22,7 @@ const doSave = (type: string) => triggerSave(type, validateForm)
 </script>
 
 <template>
-  <div class="w-full md:w-5/12 bg-white flex flex-col shadow-2xl z-20 h-full border-r border-gray-100 text-[13px] safe-area-pt">
+  <div :class="['w-full md:w-5/12 bg-white flex flex-col shadow-2xl z-20 border-r border-gray-100 text-[13px] safe-area-pt', ui.tab === 'preview' ? 'h-auto shrink-0 md:h-full md:shrink' : 'h-full flex-1 md:flex-none']">
     <!-- HEADER -->
     <div class="flex-shrink-0 bg-slate-900 text-white p-4 flex justify-between items-center">
       <div class="flex items-center gap-3">
