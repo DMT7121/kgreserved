@@ -1,4 +1,4 @@
-# 🔥 KING'S GRILL Manager AI v1.8.6
+# 🔥 KING'S GRILL — KG RESERVED v2.0
 
 > Hệ thống quản lý đặt bàn thông minh với AI Core V4.0 — Tự động phân tích đơn hàng, render bill 4K, đồng bộ Google Sheets.
 
@@ -8,7 +8,8 @@
 - **State**: Pinia (modular stores)
 - **AI Engine**: 9-platform waterfall routing (Gemini, GPT, Llama, DeepSeek...)
 - **Backend**: Google Apps Script (Sheets + Drive)
-- **Deploy**: Cloudflare Pages / GitHub Pages
+- **Design**: Google Stitch (MCP integration)
+- **Deploy**: Cloudflare Pages (`kg-reserved.pages.dev`)
 
 ## 🚀 Quick Start
 
@@ -42,7 +43,17 @@ gas/
 
 ```env
 VITE_GAS_URL=https://script.google.com/macros/s/.../exec
+VITE_R2_URL=https://kg-images.dmt-kgwork.workers.dev
 ```
+
+## 🎨 Design with Google Stitch
+
+This project uses [Google Stitch](https://stitch.withgoogle.com/) for UI/UX design via MCP integration.
+
+## 🔗 Links
+
+- **GitHub**: https://github.com/DMT7121/kgreserved
+- **Live**: https://kg-reserved.pages.dev
 
 ## 📄 License
 

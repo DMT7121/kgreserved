@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],
       manifest: {
-        name: "KING's GRILL Manager AI",
-        short_name: 'KG Manager',
-        description: 'Hệ thống quản lý đặt bàn nhà hàng King\'s Grill',
+        name: "KG RESERVED — KING's GRILL Manager AI",
+        short_name: 'KG Reserved',
+        description: 'KG RESERVED — Hệ thống quản lý đặt bàn nhà hàng King\'s Grill',
         theme_color: '#1e293b',
         background_color: '#0f172a',
         display: 'standalone',

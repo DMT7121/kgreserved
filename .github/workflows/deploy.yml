@@ -1,20 +1,11 @@
-name: Deploy to GitHub Pages
+name: Deploy to Cloudflare Pages
 
 on:
   push:
     branches: [main]
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,16 +17,13 @@ jobs:
       - run: npm run build
         env:
           VITE_GAS_URL: ${{ secrets.VITE_GAS_URL }}
-      - uses: actions/upload-pages-artifact@v3
+          VITE_R2_URL: ${{ secrets.VITE_R2_URL }}
+          VITE_APP_TITLE: ${{ secrets.VITE_APP_TITLE }}
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: kg-reserved
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

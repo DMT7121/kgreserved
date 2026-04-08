@@ -24,8 +24,15 @@ dist-ssr
 *.sw?
 
 # Environment
+.env
 .env.local
 .env.*.local
+
+# Wrangler
+.wrangler
+
+# Gemini
+.gemini
 
 # OS
 .DS_Store
