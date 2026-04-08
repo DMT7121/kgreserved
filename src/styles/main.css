@@ -112,39 +112,31 @@ input, textarea, button, select, a, div[role="button"] {
 
 .rubber-stamp {
     position: relative;
-    width: 240px;
-    height: 100px;
+    display: inline-block;
+    padding: 10px 24px 6px 24px; /* Slightly less bottom padding to balance */
     border-radius: 12px;
     border-width: 6px;
-    border-style: double;
+    border-style: double; /* Classic double border stamp look */
     text-align: center;
-    background-color: transparent;
 }
 
 .rubber-stamp-text {
-    position: absolute;
-    top: 18px;
-    left: 0;
-    width: 100%;
+    display: block;
     font-family: 'Praise', cursive;
-    font-weight: 400;
-    font-size: 42px;
+    font-weight: 400; /* Praise script font looks best at normal weight */
+    font-size: 38px;  /* Slightly larger to compensate for cursive script shape */
     letter-spacing: 0;
-    line-height: 1;
-    text-transform: none;
-    text-align: center;
+    line-height: 1.1;
+    text-transform: none; /* Keep Title Case */
+    margin-bottom: -2px; /* Pull the time up slightly */
 }
 
 .rubber-stamp-time {
-    position: absolute;
-    bottom: 12px;
-    left: 0;
-    width: 100%;
+    display: block;
     font-family: 'Courier New', Courier, monospace;
     font-weight: 800;
-    font-size: 13px;
-    letter-spacing: 0.1em;
-    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.05em;
 }
 
 /* ĐÃ CỌC - Red Rubber Stamp */
@@ -162,6 +154,17 @@ input, textarea, button, select, a, div[role="button"] {
     transform: rotate(-5deg);
     opacity: 0.7; /* Lighter ink to show it's pending */
     animation: pulse-op 2s ease-in-out infinite;
+}
+
+/* PREVENT HTML2CANVAS BUGS IN SANDBOX */
+#sandbox-container .rubber-stamp-paid {
+    animation: none !important;
+    transform: rotate(8deg) scale(1) !important;
+}
+#sandbox-container .rubber-stamp-pending {
+    animation: none !important;
+    transform: rotate(-5deg) scale(1) !important;
+    opacity: 0.8 !important;
 }
 
 @keyframes pulse-op {

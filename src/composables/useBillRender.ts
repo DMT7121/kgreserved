@@ -106,6 +106,7 @@ function _createBillRender() {
 
       // ALWAYS clone bill to avoid any scroll offset, transform clipping, or hidden state issues
       const container = document.createElement('div')
+      container.id = 'sandbox-container'
       container.style.cssText = 'position:fixed;top:0;left:-9999px;width:800px;z-index:-9999;visibility:visible;opacity:1;pointer-events:none;'
       const clone = originalElement.cloneNode(true) as HTMLElement
       clone.style.cssText = 'transform:none !important;margin:0;width:800px;min-height:100px;'
